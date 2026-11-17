@@ -1,0 +1,3287 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DCT AI — Nền Tảng Hỗ Trợ Quyết Định Mở Rộng Thị Trường</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js CDN for Analytics Dashboard -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Biến theme linh hoạt */
+    :root {
+      --theme-hue: 215deg;
+      --theme-primary: #2879ee;
+      --theme-primary-hover: #1664d9;
+      --theme-navy: #0b1730;
+      --theme-navy-gradient: linear-gradient(110deg, #071a3b 0%, #123b70 52%, #0d6ca1 100%);
+      --bg-page: #f3f7fd;
+      --card-bg: #ffffff;
+      --card-border: #e2eaf5;
+      --text-main: #132443;
+      --text-muted: #64748b;
+      --topbar-bg: rgba(255, 255, 255, 0.9);
+      --sidebar-width: 250px;
+    }
+
+    /* Giao diện Tối (Dark Mode) */
+    body.dark-mode {
+      --bg-page: #070d19;
+      --card-bg: #0f172a;
+      --card-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --topbar-bg: rgba(15, 23, 42, 0.92);
+      background: #070d19 !important;
+      color: #f8fafc !important;
+    }
+
+    body.dark-mode .app-shell {
+      background: #070d19;
+    }
+
+    body.dark-mode .panel,
+    body.dark-mode .stat-card,
+    body.dark-mode .modal-box,
+    body.dark-mode .feature-card,
+    body.dark-mode .step-guide-card,
+    body.dark-mode .reports-empty-box,
+    body.dark-mode .chatbot-dock,
+    body.dark-mode .analytics-kpi-card,
+    body.dark-mode .chart-panel {
+      background: #0f172a !important;
+      border-color: #1e293b !important;
+      color: #f8fafc !important;
+    }
+
+    body.dark-mode .guide-step-item {
+      background: #1e293b !important;
+      border-color: #334155 !important;
+    }
+
+    body.dark-mode .reports-empty-pill {
+      background: #1e293b !important;
+      border-color: #334155 !important;
+      color: #cbd5e1 !important;
+    }
+
+    body.dark-mode .topbar {
+      background: var(--topbar-bg) !important;
+      border-bottom-color: #1e293b !important;
+    }
+
+    body.dark-mode .crumb b,
+    body.dark-mode .stat-card strong,
+    body.dark-mode .panel-heading h3,
+    body.dark-mode td b,
+    body.dark-mode h1,
+    body.dark-mode h2,
+    body.dark-mode h3,
+    body.dark-mode h4 {
+      color: #f8fafc !important;
+    }
+
+    body.dark-mode th {
+      background: #1e293b !important;
+      color: #cbd5e1 !important;
+    }
+
+    body.dark-mode td {
+      border-bottom-color: #1e293b !important;
+      color: #cbd5e1 !important;
+    }
+
+    body.dark-mode tr:hover {
+      background: #1e293b55 !important;
+    }
+
+    body.dark-mode .empty-state-banner {
+      background: #0f172a !important;
+      border-color: #334155 !important;
+      color: #94a3b8 !important;
+    }
+
+    body.dark-mode .pipeline-step {
+      background: #1e293b !important;
+      border-color: #334155 !important;
+    }
+
+    body.dark-mode .pipeline-step b {
+      color: #f8fafc !important;
+    }
+
+    body.dark-mode .status-row {
+      border-bottom-color: #1e293b !important;
+    }
+
+    body.dark-mode .status-row b {
+      color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .color-picker-box,
+    body.dark-mode .mode-toggle-btn,
+    body.dark-mode .pulse-toggle-btn {
+      background: #1e293b !important;
+      border-color: #334155 !important;
+      color: #cbd5e1 !important;
+    }
+
+    body.dark-mode .chat-bubble.ai {
+      background: #1e293b !important;
+      color: #f1f5f9 !important;
+      border-color: #334155 !important;
+    }
+
+    /* ================= HIỆU ỨNG PHÁT SÁNG CÁC TASK KHI DI CHUỘT THEO CHATBOT ================= */
+    .task-glow-active {
+      border-color: var(--theme-primary) !important;
+      box-shadow: 0 0 25px 5px rgba(40, 121, 238, 0.75), inset 0 0 15px rgba(40, 121, 238, 0.25) !important;
+      transform: translateY(-4px) scale(1.03) !important;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+      z-index: 10;
+    }
+
+    body.dark-mode .task-glow-active {
+      box-shadow: 0 0 30px 8px rgba(56, 189, 248, 0.85), inset 0 0 20px rgba(56, 189, 248, 0.35) !important;
+      border-color: #38bdf8 !important;
+    }
+
+    /* Badge liên kết trong tin nhắn Chatbot */
+    .task-badge-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(40, 121, 238, 0.12);
+      color: var(--theme-primary);
+      border: 1px solid rgba(40, 121, 238, 0.3);
+      transition: all 0.2s;
+    }
+
+    .task-badge-link:hover {
+      background: var(--theme-primary);
+      color: #fff;
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(40, 121, 238, 0.4);
+    }
+
+    /* ================= NỀN NHẤP NHÁY AURORA ================= */
+    .ambient-aurora {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .aurora-1 {
+      width: 600px;
+      height: 600px;
+      top: -250px;
+      right: -100px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, rgba(37, 99, 235, 0.25) 45%, transparent 70%);
+      filter: blur(90px);
+    }
+
+    .aurora-2 {
+      width: 550px;
+      height: 550px;
+      bottom: -200px;
+      left: 15%;
+      background: radial-gradient(circle, rgba(45, 212, 191, 0.35) 0%, rgba(16, 185, 129, 0.2) 50%, transparent 70%);
+      filter: blur(100px);
+    }
+
+    .aurora-3 {
+      width: 450px;
+      height: 450px;
+      top: 40%;
+      right: 25%;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(99, 102, 241, 0.15) 50%, transparent 70%);
+      filter: blur(110px);
+    }
+
+    body:not(.dark-mode) .aurora-1 {
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.3) 0%, rgba(96, 165, 250, 0.18) 50%, transparent 70%);
+    }
+
+    body:not(.dark-mode) .aurora-2 {
+      background: radial-gradient(circle, rgba(52, 211, 153, 0.25) 0%, rgba(45, 212, 191, 0.15) 50%, transparent 70%);
+    }
+
+    body:not(.dark-mode) .aurora-3 {
+      background: radial-gradient(circle, rgba(192, 132, 252, 0.2) 0%, transparent 60%);
+    }
+
+    /* ================= HIỆU ỨNG NHẤP NHÁY SAO BĂNG (METEOR SHOWER & STARFIELD - TINH TẾ & DỄ NHÌN) ================= */
+    .meteor-shower {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .ambient-active .meteor-shower {
+      opacity: 1;
+    }
+
+    /* ============ 1. CÁC VÌ SAO TINH TÚ (TWINKLING STARS) ============ */
+    .star-twinkle {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    /* Chế độ Sáng: Tinh tú sapphire & cyan sắc nét, tương phản cao, êm mắt */
+    body:not(.dark-mode) .star-twinkle {
+      background: #2563eb;
+      box-shadow: 0 0 6px rgba(37, 99, 235, 0.7), 0 0 12px rgba(14, 165, 233, 0.5);
+      opacity: 0.4;
+    }
+
+    body:not(.dark-mode) .ambient-active .star-twinkle {
+      animation: starTwinkleLight 3.2s ease-in-out infinite alternate;
+    }
+
+    /* Chế độ Tối: Tinh tú kim cương trắng lấp lánh */
+    body.dark-mode .star-twinkle {
+      background: #ffffff;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.95), 0 0 14px rgba(56, 189, 248, 0.7);
+      opacity: 0.35;
+    }
+
+    body.dark-mode .ambient-active .star-twinkle {
+      animation: starTwinkleDark 3.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes starTwinkleLight {
+      0% {
+        opacity: 0.2;
+        transform: scale(0.75);
+      }
+
+      50% {
+        opacity: 0.85;
+        transform: scale(1.3);
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.9), 0 0 16px rgba(14, 165, 233, 0.7);
+      }
+
+      100% {
+        opacity: 0.25;
+        transform: scale(0.8);
+      }
+    }
+
+    @keyframes starTwinkleDark {
+      0% {
+        opacity: 0.2;
+        transform: scale(0.75);
+      }
+
+      50% {
+        opacity: 0.95;
+        transform: scale(1.3);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 1), 0 0 16px rgba(56, 189, 248, 0.85);
+      }
+
+      100% {
+        opacity: 0.25;
+        transform: scale(0.8);
+      }
+    }
+
+    .st-1 {
+      top: 8%;
+      left: 15%;
+      width: 3px;
+      height: 3px;
+      animation-delay: 0.2s !important;
+    }
+
+    .st-2 {
+      top: 22%;
+      left: 38%;
+      width: 4px;
+      height: 4px;
+      animation-delay: 1.1s !important;
+    }
+
+    .st-3 {
+      top: 7%;
+      left: 72%;
+      width: 3px;
+      height: 3px;
+      animation-delay: 1.8s !important;
+    }
+
+    .st-4 {
+      top: 35%;
+      left: 85%;
+      width: 4px;
+      height: 4px;
+      animation-delay: 0.5s !important;
+    }
+
+    .st-5 {
+      top: 52%;
+      left: 14%;
+      width: 3px;
+      height: 3px;
+      animation-delay: 2.3s !important;
+    }
+
+    .st-6 {
+      top: 68%;
+      left: 32%;
+      width: 4px;
+      height: 4px;
+      animation-delay: 0.9s !important;
+    }
+
+    .st-7 {
+      top: 82%;
+      left: 58%;
+      width: 3px;
+      height: 3px;
+      animation-delay: 1.5s !important;
+    }
+
+    .st-8 {
+      top: 40%;
+      left: 55%;
+      width: 4px;
+      height: 4px;
+      animation-delay: 2.7s !important;
+    }
+
+    .st-9 {
+      top: 15%;
+      left: 92%;
+      width: 3px;
+      height: 3px;
+      animation-delay: 0.7s !important;
+    }
+
+    .st-10 {
+      top: 75%;
+      left: 80%;
+      width: 4px;
+      height: 4px;
+      animation-delay: 1.3s !important;
+    }
+
+    /* ============ 2. CÁC VỆT SAO BĂNG (SHOOTING METEORS - TINH TẾ, DỄ NHÌN) ============ */
+    .meteor {
+      position: absolute;
+      height: 2px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transform-origin: right center;
+    }
+
+    .ambient-active .meteor {
+      animation: meteorFly 4.6s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+    }
+
+    /* HIỆU ỨNG SAO BĂNG CHẾ ĐỘ SÁNG (XANH SAPPHIRE & CYAN SẮC SẢO, DỄ NHÌN, KHÔNG BỊ LEM MỜ) */
+    body:not(.dark-mode) .meteor {
+      background: linear-gradient(270deg, #1d4ed8 0%, #2563eb 25%, #0284c7 50%, rgba(56, 189, 248, 0.4) 75%, transparent 100%);
+      filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.5));
+    }
+
+    body:not(.dark-mode) .meteor::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: -1.5px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #1d4ed8;
+      box-shadow: 0 0 8px 2px #2563eb, 0 0 16px 4px rgba(2, 132, 199, 0.75);
+    }
+
+    /* HIỆU ỨNG SAO BĂNG CHẾ ĐỘ TỐI (KIM CƯƠNG TRẮNG SÁNG & BĂNG LAM HUYỀN ẢO) */
+    body.dark-mode .meteor {
+      background: linear-gradient(270deg, #ffffff 0%, #38bdf8 30%, #818cf8 60%, transparent 100%);
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.75));
+    }
+
+    body.dark-mode .meteor::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: -1.5px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 10px 2px #ffffff, 0 0 18px 4px #38bdf8;
+    }
+
+    @keyframes meteorFly {
+      0% {
+        opacity: 0;
+        transform: rotate(135deg) translateX(0) scaleX(0.2);
+      }
+
+      8% {
+        opacity: 1;
+        transform: rotate(135deg) translateX(80px) scaleX(1);
+      }
+
+      40% {
+        opacity: 0.95;
+        transform: rotate(135deg) translateX(460px) scaleX(1.3);
+      }
+
+      62% {
+        opacity: 0;
+        transform: rotate(135deg) translateX(820px) scaleX(0.2);
+      }
+
+      100% {
+        opacity: 0;
+        transform: rotate(135deg) translateX(820px) scaleX(0);
+      }
+    }
+
+    .m-1 {
+      top: -20px;
+      right: 12%;
+      width: 150px;
+      animation-delay: 0s !important;
+      animation-duration: 3.8s !important;
+    }
+
+    .m-2 {
+      top: 30px;
+      right: 35%;
+      width: 190px;
+      animation-delay: 1.4s !important;
+      animation-duration: 4.5s !important;
+    }
+
+    .m-3 {
+      top: 120px;
+      right: 8%;
+      width: 140px;
+      animation-delay: 2.8s !important;
+      animation-duration: 3.6s !important;
+    }
+
+    .m-4 {
+      top: 10px;
+      right: 65%;
+      width: 180px;
+      animation-delay: 2.1s !important;
+      animation-duration: 5.0s !important;
+    }
+
+    .m-5 {
+      top: 220px;
+      right: 28%;
+      width: 160px;
+      animation-delay: 4.2s !important;
+      animation-duration: 4.2s !important;
+    }
+
+    .m-6 {
+      top: 60px;
+      right: 82%;
+      width: 200px;
+      animation-delay: 5.6s !important;
+      animation-duration: 4.8s !important;
+    }
+
+    /* ================= BONG BÓNG CHAT AI NỔI (FLOATING AI COPILOT LAUNCHER) ================= */
+    .ai-chat-bubble-launcher {
+      position: fixed;
+      right: 84px;
+      bottom: 24px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%);
+      color: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(2, 132, 199, 0.45);
+      z-index: 97;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .ai-chat-bubble-launcher:hover {
+      transform: scale(1.12);
+      box-shadow: 0 12px 30px rgba(2, 132, 199, 0.65);
+      border-color: #ffffff;
+    }
+
+    .ai-bubble-badge-pulse {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 13px;
+      height: 13px;
+      background: #10b981;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .ambient-active .ai-bubble-badge-pulse {
+      animation: bubblePulse 2s infinite;
+    }
+
+    @keyframes bubblePulse {
+      0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+
+      70% {
+        transform: scale(1.2);
+        box-shadow: 0 0 0 7px rgba(16, 185, 129, 0);
+      }
+
+      100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+
+    .ai-bubble-tag {
+      position: absolute;
+      right: 60px;
+      background: rgba(11, 23, 48, 0.88);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateX(8px);
+      transition: all 0.22s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .ai-chat-bubble-launcher:hover .ai-bubble-tag {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ================= CỬA SỔ CHAT AI NỔI (AI COPILOT MODAL) ================= */
+    .ai-chat-window {
+      position: fixed;
+      right: 24px;
+      bottom: 82px;
+      width: 395px;
+      height: 540px;
+      max-width: calc(100vw - 32px);
+      max-height: calc(100vh - 110px);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(11, 23, 48, 0.28);
+      display: flex;
+      flex-direction: column;
+      z-index: 99;
+      opacity: 0;
+      transform: scale(0.88) translateY(20px);
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+    }
+
+    .ai-chat-window.open {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+
+    .ai-chat-header {
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ai-chat-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ai-avatar-online {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+    }
+
+    .online-indicator {
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 9px;
+      height: 9px;
+      background: #10b981;
+      border-radius: 50%;
+      border: 2px solid var(--card-bg);
+    }
+
+    .ai-chat-header-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .ai-chat-btn-icon {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .ai-chat-btn-icon:hover {
+      background: rgba(40, 121, 238, 0.1);
+      color: var(--theme-primary);
+    }
+
+    .ai-chat-quick-suggestions {
+      padding: 8px 14px 10px;
+      background: rgba(40, 121, 238, 0.04);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .ai-prompt-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+
+    .ai-prompt-chip {
+      white-space: nowrap;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .ai-prompt-chip:hover {
+      background: var(--theme-primary);
+      color: #fff;
+      border-color: var(--theme-primary);
+      transform: translateY(-1px);
+    }
+
+    .ai-chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--bg-page);
+    }
+
+    .ai-msg {
+      display: flex;
+      gap: 8px;
+      max-width: 90%;
+    }
+
+    .ai-msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .ai-msg.bot {
+      align-self: flex-start;
+    }
+
+    .ai-msg-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .ai-msg.user .ai-msg-avatar {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .ai-msg-bubble {
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .ai-msg.bot .ai-msg-bubble {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      border-top-left-radius: 3px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .ai-msg.user .ai-msg-bubble {
+      background: linear-gradient(135deg, var(--theme-primary), #1a58bd);
+      color: #ffffff;
+      border-top-right-radius: 3px;
+      box-shadow: 0 4px 12px rgba(40, 121, 238, 0.25);
+    }
+
+    .ai-chat-footer {
+      padding: 10px 14px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+    }
+
+    #ai-chat-input {
+      flex: 1;
+      padding: 9px 13px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      background: var(--bg-page);
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    #ai-chat-input:focus {
+      border-color: var(--theme-primary);
+    }
+
+    #ai-chat-send-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--theme-primary);
+      color: #fff;
+      border: 0;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    #ai-chat-send-btn:hover {
+      background: var(--theme-primary-hover);
+      transform: scale(1.08);
+    }
+
+    .typing-dots span {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      margin: 0 2px;
+      animation: typingPulse 1.2s infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingPulse {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0.6);
+        opacity: 0.4;
+      }
+
+      40% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+    }
+
+    /* ================= THANH TÁC VỤ NỔI TỰ ĐỘNG ĐÓNG MỞ THEO CHUỘT (HOVER DOCK) ================= */
+    .floating-dock-container {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 98;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .dock-main-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--theme-primary), #0d5cb6);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      font-size: 20px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 24px rgba(40, 121, 238, 0.45);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .dock-main-btn:hover,
+    .floating-dock-container:hover .dock-main-btn,
+    .floating-dock-container.open .dock-main-btn {
+      transform: scale(1.12);
+      box-shadow: 0 12px 30px rgba(40, 121, 238, 0.65);
+    }
+
+    .floating-dock-menu {
+      position: absolute;
+      bottom: 58px;
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.22);
+      transform-origin: bottom right;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(0.85) translateY(12px);
+      pointer-events: none;
+      min-width: 235px;
+    }
+
+    /* Đóng mở mượt mà khi di chuột vào hoặc qua class .open */
+    .floating-dock-container:hover .floating-dock-menu,
+    .floating-dock-container.open .floating-dock-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+
+    .dock-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 13px;
+      border-radius: 10px;
+      border: 0;
+      background: transparent;
+      color: var(--text-main);
+      font: 600 11px inherit;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+    }
+
+    .dock-item:hover {
+      background: rgba(40, 121, 238, 0.1);
+      color: var(--theme-primary);
+    }
+
+    .dock-item i {
+      font-style: normal;
+      font-size: 14px;
+      width: 18px;
+      text-align: center;
+    }
+
+    .dock-divider {
+      height: 1px;
+      background: var(--card-border);
+      margin: 4px 0;
+    }
+
+    /* ================= SIDEBAR ĐÓNG MỞ THEO CHUỘT (HOVER-TO-EXPAND SIDEBAR) ================= */
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 68px minmax(0, 1fr);
+      transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .app-shell.sidebar-pinned {
+      grid-template-columns: 250px minmax(0, 1fr) !important;
+    }
+
+    .app-shell.sidebar-collapsed {
+      grid-template-columns: 0px minmax(0, 1fr) !important;
+    }
+
+    .app-shell.sidebar-collapsed .sidebar {
+      transform: translateX(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar {
+      width: 68px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 20px 8px 16px;
+      background: linear-gradient(180deg, #0a1730, #102746 75%, #0a1931);
+      color: #dbe8ff;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 95;
+      box-shadow: 6px 0 25px rgba(0, 0, 0, 0.15);
+      transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s ease, transform 0.3s ease, padding 0.28s ease;
+      white-space: nowrap;
+    }
+
+    /* Khi rê chuột vào Sidebar hoặc khi ghim mở */
+    .sidebar:hover,
+    .sidebar.is-hovered,
+    .app-shell.sidebar-pinned .sidebar {
+      width: 250px !important;
+      padding: 22px 16px 16px;
+      box-shadow: 14px 0 40px rgba(0, 0, 0, 0.45);
+    }
+
+    /* 1. Phần Brand */
+    .sidebar .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 4px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+
+    .sidebar .brand-mark {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(140deg, #4bb9ff, #1554c7);
+      font-size: 18px;
+      font-weight: 900;
+      box-shadow: 0 0 20px rgba(37, 136, 255, 0.4);
+      flex-shrink: 0;
+    }
+
+    .sidebar .brand-info {
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+
+    .sidebar:hover .brand-info,
+    .sidebar.is-hovered .brand-info,
+    .app-shell.sidebar-pinned .sidebar .brand-info {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    /* 2. Workspace Label */
+    .sidebar .workspace-label {
+      font-size: 9px;
+      letter-spacing: 1.6px;
+      color: #7189ad;
+      margin: 18px 8px 8px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .sidebar:hover .workspace-label,
+    .sidebar.is-hovered .workspace-label,
+    .app-shell.sidebar-pinned .sidebar .workspace-label {
+      opacity: 1;
+    }
+
+    /* 3. Navigation Items */
+    .sidebar .nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .sidebar .nav-item {
+      border: 0;
+      background: transparent;
+      color: #b9c9e1;
+      border-radius: 10px;
+      text-align: left;
+      padding: 12px 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font: 500 12px inherit;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+    }
+
+    .sidebar .nav-item i {
+      font-style: normal;
+      font-size: 17px;
+      width: 24px;
+      min-width: 24px;
+      text-align: center;
+      color: #8eb4e8;
+      flex-shrink: 0;
+    }
+
+    .sidebar .nav-item .nav-text {
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .sidebar:hover .nav-item .nav-text,
+    .sidebar.is-hovered .nav-item .nav-text,
+    .app-shell.sidebar-pinned .sidebar .nav-item .nav-text {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .sidebar .nav-item:hover,
+    .sidebar .nav-item.active {
+      background: linear-gradient(100deg, #2378ed, #1a58bd);
+      color: white;
+      box-shadow: 0 6px 16px rgba(7, 88, 195, 0.35);
+    }
+
+    .sidebar .nav-item.active i {
+      color: white;
+    }
+
+    /* 4. Bottom System Card & User Profile */
+    .sidebar-bottom {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .sidebar .system-card {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      opacity: 0;
+      height: 0;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      transition: opacity 0.2s ease, height 0.25s ease, padding 0.25s ease;
+    }
+
+    .sidebar:hover .system-card,
+    .sidebar.is-hovered .system-card,
+    .app-shell.sidebar-pinned .sidebar .system-card {
+      opacity: 1;
+      height: auto;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .sidebar .user-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 4px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar .user-mini:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .sidebar .user-mini .avatar {
+      width: 38px;
+      height: 38px;
+      min-width: 38px;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #4cb6ff, #2454bb);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 800;
+      font-size: 11px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+    }
+
+    .sidebar .user-mini-details {
+      opacity: 0;
+      overflow: hidden;
+      transition: opacity 0.2s ease;
+    }
+
+    .sidebar:hover .user-mini-details,
+    .sidebar.is-hovered .user-mini-details,
+    .app-shell.sidebar-pinned .sidebar .user-mini-details {
+      opacity: 1;
+    }
+
+    .sidebar .user-mini-details b {
+      display: block;
+      font-size: 11px;
+      color: #e2e8f0;
+    }
+
+    .sidebar .user-mini-details small {
+      display: block;
+      font-size: 9px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .sidebar .user-mini-action {
+      margin-left: auto;
+      color: #94a3b8;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .sidebar:hover .user-mini-action,
+    .sidebar.is-hovered .user-mini-action,
+    .app-shell.sidebar-pinned .sidebar .user-mini-action {
+      opacity: 1;
+    }
+
+    /* Topbar User Pill Button */
+    .topbar-user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px 4px 5px;
+      background: rgba(40, 121, 238, 0.08);
+      border: 1px solid var(--card-border);
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .topbar-user-pill:hover {
+      background: rgba(40, 121, 238, 0.16);
+      border-color: var(--theme-primary);
+      transform: translateY(-1px);
+    }
+
+    .topbar-user-pill .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #4cb6ff, #2454bb);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 800;
+      font-size: 10px;
+    }
+
+    .topbar-user-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+      text-align: left;
+    }
+
+    .topbar-user-info .user-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .topbar-user-info .user-role-badge {
+      font-size: 8px;
+      color: var(--text-muted);
+    }
+
+    .user-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+
+    .user-status-dot.logged-out {
+      background: #94a3b8;
+      box-shadow: none;
+    }
+
+    /* Nút Đóng mở Sidebar trên Topbar */
+    .toggle-sidebar-btn {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 0 10px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .toggle-sidebar-btn:hover {
+      background: rgba(40, 121, 238, 0.12);
+      border-color: var(--theme-primary);
+      color: var(--theme-primary);
+    }
+
+    /* ================= MODAL ĐĂNG NHẬP / ĐĂNG XUẤT TÀI KHOẢN (AUTH MODAL) ================= */
+    .auth-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 17, 34, 0.72);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .auth-modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 480px;
+      padding: 26px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+      position: relative;
+      animation: scaleUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes scaleUp {
+      from {
+        transform: scale(0.92);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .auth-modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 14px;
+    }
+
+    .auth-modal-head h3 {
+      margin: 4px 0 0;
+      font-size: 17px;
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .auth-badge {
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+      color: var(--theme-primary);
+      background: rgba(40, 121, 238, 0.12);
+      padding: 3px 8px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .auth-modal-close {
+      background: transparent;
+      border: 0;
+      font-size: 24px;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .auth-modal-close:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Profile view */
+    .auth-user-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(40, 121, 238, 0.08), rgba(2, 132, 199, 0.04));
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      margin-bottom: 18px;
+    }
+
+    .auth-avatar-big {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(140deg, #4cb6ff, #2454bb);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+      font-size: 20px;
+      box-shadow: 0 4px 15px rgba(36, 84, 187, 0.35);
+      border: 2px solid white;
+    }
+
+    .auth-user-details h4 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .auth-role-tag {
+      font-size: 10px;
+      font-weight: 600;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+
+    .auth-email {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .auth-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .auth-meta-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .auth-meta-item small {
+      display: block;
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .auth-meta-item b {
+      display: block;
+      font-size: 11px;
+      color: var(--text-main);
+    }
+
+    .auth-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .auth-actions .btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      border: 1px solid #dc2626;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border: 0;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    /* Login Form Styles */
+    .auth-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+
+    .auth-input:focus {
+      border-color: var(--theme-primary);
+      box-shadow: 0 0 0 3px rgba(40, 121, 238, 0.15);
+    }
+
+    .quick-acc-btn {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px dashed var(--card-border);
+      background: rgba(40, 121, 238, 0.04);
+      color: var(--text-main);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .quick-acc-btn:hover {
+      background: rgba(40, 121, 238, 0.12);
+      border-color: var(--theme-primary);
+    }
+
+    /* Ảnh đại diện người dùng (avatar ảnh thật) */
+    .avatar, .auth-avatar-big { overflow: hidden; }
+    .avatar img, .auth-avatar-big img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: block;
+    }
+    .auth-avatar-big.editable { cursor: pointer; position: relative; }
+    .auth-avatar-big.editable::after {
+      content: '📷';
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .auth-avatar-big.editable:hover::after { opacity: 1; }
+    .avatar-upload-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .avatar-upload-row .auth-avatar-big { width: 52px; height: 52px; font-size: 18px; flex-shrink: 0; }
+    .avatar-link-btn {
+      border: 1px dashed var(--card-border);
+      background: rgba(40, 121, 238, 0.04);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .avatar-link-btn:hover { border-color: var(--theme-primary); background: rgba(40, 121, 238, 0.12); }
+    .auth-field-error { color: #e11d48; font-size: 10px; margin-top: 4px; display: none; }
+    .auth-input.invalid { border-color: #e11d48; }
+
+    /* ================= CHATBOT COPILOT PANEL NỔI ================= */
+    .chatbot-dock {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-top: 20px;
+    }
+
+    .chat-bubble {
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .chat-bubble.ai {
+      background: #f1f7ff;
+      color: #1e3a8a;
+      border: 1px solid #dbeafe;
+    }
+
+    .chat-quick-prompt {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      background: rgba(40, 121, 238, 0.08);
+      color: var(--theme-primary);
+      border: 1px solid rgba(40, 121, 238, 0.2);
+      transition: all 0.2s;
+      margin: 3px;
+    }
+
+    .chat-quick-prompt:hover {
+      background: var(--theme-primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    /* ================= GIAO DIỆN PHẦN TỔNG QUAN (OVERVIEW & FEATURES) ================= */
+    .intro-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px 22px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(40, 121, 238, 0.12);
+      border-color: rgba(40, 121, 238, 0.4);
+    }
+
+    .feature-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 13px;
+      background: rgba(40, 121, 238, 0.1);
+      border: 1px solid rgba(40, 121, 238, 0.2);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+
+    .feature-card:hover .feature-icon-box {
+      transform: scale(1.1);
+    }
+
+    .feature-card:nth-child(1) .feature-icon-box {
+      background: rgba(40, 121, 238, 0.12);
+      border-color: rgba(40, 121, 238, 0.25);
+    }
+
+    .feature-card:nth-child(2) .feature-icon-box {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.25);
+    }
+
+    .feature-card:nth-child(3) .feature-icon-box {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .feature-card:nth-child(4) .feature-icon-box {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    /* Hướng dẫn lộ trình 4 bước */
+    .step-guide-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px 26px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .guide-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .guide-step-item {
+      background: var(--bg-page);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.25s;
+    }
+
+    .guide-step-item:hover {
+      border-color: var(--theme-primary);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .guide-step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--theme-primary), #1a58bd);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 14px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(40, 121, 238, 0.3);
+    }
+
+    .guide-step-item strong {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .guide-step-item p {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* ================= EMPTY STATE BÁO CÁO KẾT QUẢ ================= */
+    .reports-empty-box {
+      background: var(--card-bg);
+      border: 2px dashed var(--card-border);
+      border-radius: 18px;
+      padding: 56px 32px;
+      text-align: center;
+      max-width: 820px;
+      margin: 25px auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+
+    .reports-empty-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(40, 121, 238, 0.12), rgba(56, 189, 248, 0.15));
+      border: 1px solid rgba(40, 121, 238, 0.25);
+      color: var(--theme-primary);
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      margin: 0 auto 18px;
+      box-shadow: 0 8px 20px rgba(40, 121, 238, 0.15);
+    }
+
+    .reports-empty-pills {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0 28px;
+    }
+
+    .reports-empty-pill {
+      background: var(--bg-page);
+      border: 1px solid var(--card-border);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Responsive cho màn hình vừa & nhỏ */
+    @media(max-width: 900px) {
+      .intro-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .guide-flow {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media(max-width: 550px) {
+      .guide-flow {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ================= CÁC THẺ DASHBOARD PHÂN TÍCH CAO CẤP Ở BÁO CÁO ================= */
+    .analytics-kpis-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin: 18px 0;
+    }
+
+    .analytics-kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .analytics-kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--theme-primary), #38bdf8);
+    }
+
+    .analytics-kpi-card label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .analytics-kpi-card strong {
+      font-size: 26px;
+      font-weight: 900;
+      margin: 4px 0 2px;
+      display: block;
+      color: var(--text-main);
+    }
+
+    .analytics-kpi-card small {
+      font-size: 11px;
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .analytics-charts-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+      margin: 20px 0;
+    }
+
+    .chart-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .chart-container-box {
+      position: relative;
+      height: 270px;
+      width: 100%;
+    }
+
+    /* Vùng Accordion & Drag-Drop */
+    .task-collapsible {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      background: var(--card-bg);
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .task-collapsible-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(0, 0, 0, 0.02);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    body.dark-mode .task-collapsible-header {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .task-collapsible-header:hover {
+      background: rgba(40, 121, 238, 0.06);
+    }
+
+    .task-collapsible-content {
+      padding: 16px 18px;
+      font-size: 12px;
+      line-height: 1.7;
+      border-top: 1px solid var(--card-border);
+      display: none;
+    }
+
+    .task-collapsible.expanded .task-collapsible-content {
+      display: block;
+      animation: fadeInContent 0.25s ease;
+    }
+
+    @keyframes fadeInContent {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toggle-arrow {
+      transition: transform 0.25s ease;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .task-collapsible.expanded .toggle-arrow {
+      transform: rotate(180deg);
+      color: var(--theme-primary);
+    }
+
+    .topbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mode-toggle-btn,
+    .pulse-toggle-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .color-picker-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      font-size: 11px;
+      color: #475569;
+    }
+
+    .color-dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px #94a3b8;
+      transition: transform 0.2s;
+    }
+
+    .color-dot:hover {
+      transform: scale(1.25);
+    }
+
+    .color-dot.active {
+      box-shadow: 0 0 0 2px var(--theme-primary);
+      transform: scale(1.15);
+    }
+
+    .hue-slider {
+      width: 50px;
+      height: 6px;
+      -webkit-appearance: none;
+      background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+      border-radius: 5px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .hue-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid #000;
+      cursor: pointer;
+    }
+
+    .file-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 7px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-excel {
+      background: #e6f7ee;
+      color: #0d8a4f;
+      border: 1px solid #b7ebd0;
+    }
+
+    .badge-word {
+      background: #e8f1fc;
+      color: #185abd;
+      border: 1px solid #c0d8f8;
+    }
+
+    .badge-ppt {
+      background: #fdf0ec;
+      color: #c43e1c;
+      border: 1px solid #f8cdbe;
+    }
+
+    .export-btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .btn-export-excel {
+      background: linear-gradient(110deg, #107c41, #0c5e31);
+      color: #fff;
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 7px;
+      font: 700 10px 'Be Vietnam Pro', sans-serif;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: 0.2s;
+    }
+
+    .btn-export-word {
+      background: linear-gradient(110deg, #185abd, #103f88);
+      color: #fff;
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 7px;
+      font: 700 10px 'Be Vietnam Pro', sans-serif;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: 0.2s;
+    }
+
+    .btn-export-ppt {
+      background: linear-gradient(110deg, #c43e1c, #942b10);
+      color: #fff;
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 7px;
+      font: 700 10px 'Be Vietnam Pro', sans-serif;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: 0.2s;
+    }
+
+    .empty-state-banner {
+      background: var(--card-bg);
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 35px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .pipeline-step.waiting {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      color: #94a3b8;
+      opacity: 0.75;
+    }
+
+    .pipeline-step.waiting .step-number {
+      background: #94a3b8;
+      box-shadow: none;
+    }
+
+    .pipeline-step.waiting .step-check {
+      background: #cbd5e1;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 23, 48, 0.65);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 650px;
+      max-height: 85vh;
+      overflow-y: auto;
+      border: 1px solid var(--card-border);
+    }
+
+    .modal-head {
+      padding: 16px 22px;
+      background: var(--theme-navy-gradient);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 15px 15px 0 0;
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: 0;
+      color: #a4c4f0;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .modal-footer {
+      padding: 12px 22px;
+      background: rgba(0, 0, 0, 0.02);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-radius: 0 0 15px 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Hiệu ứng nền nhấp nháy sao băng & tinh tú đa chiều (Meteor Shower & Starfield) -->
+  <div class="ambient-active" id="ambient-wrapper">
+    <div class="ambient-aurora aurora-1" id="aurora-1"></div>
+    <div class="ambient-aurora aurora-2" id="aurora-2"></div>
+    <div class="ambient-aurora aurora-3" id="aurora-3"></div>
+    <div class="meteor-shower" id="meteor-shower">
+      <div class="star-twinkle st-1"></div>
+      <div class="star-twinkle st-2"></div>
+      <div class="star-twinkle st-3"></div>
+      <div class="star-twinkle st-4"></div>
+      <div class="star-twinkle st-5"></div>
+      <div class="star-twinkle st-6"></div>
+      <div class="star-twinkle st-7"></div>
+      <div class="star-twinkle st-8"></div>
+      <div class="star-twinkle st-9"></div>
+      <div class="star-twinkle st-10"></div>
+      <div class="meteor m-1"></div>
+      <div class="meteor m-2"></div>
+      <div class="meteor m-3"></div>
+      <div class="meteor m-4"></div>
+      <div class="meteor m-5"></div>
+      <div class="meteor m-6"></div>
+    </div>
+  </div>
+
+  <div class="app-shell" id="app-shell">
+    <!-- SIDEBAR BÊN TRÁI (TỰ ĐỘNG ĐÓNG MỞ THEO CHUỘT / HỖ TRỢ GHIM MỞ) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark" style="font-size:14px; letter-spacing:0.5px;">DCT<span>✦</span></div>
+        <div class="brand-info"><strong>DCT AI</strong><small>MARKET INTELLIGENCE</small></div>
+      </div>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="nav">
+        <button class="nav-item active" data-view="overview" title="Giới thiệu hệ thống"><i>▦</i><span
+            class="nav-text">Giới thiệu hệ thống</span></button>
+        <button class="nav-item" data-view="input" title="Xử lý & Khởi chạy"><i>⇧</i><span class="nav-text">Xử lý & Khởi
+            chạy</span></button>
+        <button class="nav-item" data-view="analysis" title="Phân tích thị trường"><i>◈</i><span class="nav-text">Phân
+            tích thị trường</span></button>
+        <button class="nav-item" data-view="compare" title="So sánh kết quả"><i>▤</i><span class="nav-text">So sánh kết
+            quả</span></button>
+        <button class="nav-item" data-view="reports" title="Báo cáo kết quả"><i>▧</i><span class="nav-text">Báo cáo kết
+            quả</span></button>
+        <button class="nav-item" data-view="logs" title="Nhật ký Agent"><i>≡</i><span class="nav-text">Nhật ký
+            Agent</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="system-card">
+          <div class="system-head"><span class="pulse"></span> Agent System <b>ONLINE</b></div>
+          <p>Phiên bản <strong>v1.0.0</strong></p>
+          <p>Nền tảng <strong>Google Antigravity</strong></p>
+          <div class="system-line"><span></span></div>
+          <small id="system-readiness-label">Chờ nạp tệp tại mục Xử lý</small>
+        </div>
+        <div class="user-mini" id="sidebar-user-mini" title="Tài khoản: Nhấn để xem chi tiết hoặc Đăng xuất">
+          <div class="avatar" id="sidebar-avatar">KH</div>
+          <div class="user-mini-details">
+            <b id="sidebar-user-name">Khách</b>
+            <small id="sidebar-user-role">Trưởng phòng PTKD</small>
+          </div>
+          <span class="user-mini-action">⚙</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <button class="toggle-sidebar-btn" id="toggle-sidebar-btn"
+            title="Chuyển đổi: Đóng mở theo chuột ↔ Ghim mở cố định">
+            <span id="sidebar-icon">↔️</span>
+            <span id="sidebar-btn-label">Đóng mở theo chuột</span>
+          </button>
+          <div class="crumb"><span class="home-icon">⌂</span><span>/</span><b id="page-title">Giới thiệu hệ thống</b>
+          </div>
+        </div>
+
+        <div class="top-actions topbar-controls">
+          <button class="pulse-toggle-btn" id="toggle-pulse-btn" title="Bật/Tắt hiệu ứng nhấp nháy sao băng">
+            <span id="pulse-icon">🌠</span> <span id="pulse-label">Nền: Sao băng</span>
+          </button>
+
+          <button class="mode-toggle-btn" id="theme-mode-toggle" title="Chuyển đổi giao diện Sáng / Tối">
+            <span id="mode-icon">🌙</span> <span id="mode-label">Chế độ Tối</span>
+          </button>
+
+          <div class="color-picker-box" title="Thanh chỉnh màu sắc giao diện">
+            <span>🎨 Màu:</span>
+            <div class="color-dots">
+              <span class="color-dot active" style="background:#2879ee;" data-color="blue"
+                title="Xanh Hưng Phát"></span>
+              <span class="color-dot" style="background:#10b981;" data-color="green" title="Xanh Lục Bảo"></span>
+              <span class="color-dot" style="background:#8b5cf6;" data-color="purple" title="Tím Công Nghệ"></span>
+              <span class="color-dot" style="background:#f59e0b;" data-color="amber" title="Cam Hoàng Kim"></span>
+              <span class="color-dot" style="background:#e11d48;" data-color="crimson" title="Đỏ Doanh Nghiệp"></span>
+            </div>
+            <input type="range" min="0" max="360" value="215" class="hue-slider" id="theme-hue-slider"
+              title="Kéo thanh chỉnh sắc thái màu sắc">
+          </div>
+
+          <span class="live-pill" id="live-pill"><span class="pulse"></span> LIVE</span>
+          <button class="icon-btn" id="notif-btn" aria-label="Thông báo">♧<em id="notif-badge">3</em></button>
+
+          <!-- Nút Tài Khoản Người Dùng (Đăng nhập / Đăng xuất) -->
+          <div class="topbar-user-pill" id="topbar-user-btn"
+            title="Tài khoản Quản trị viên - Nhấn để quản lý / Đăng xuất">
+            <div class="avatar" id="topbar-avatar">KH</div>
+            <div class="topbar-user-info">
+              <span class="user-name" id="topbar-user-name">Khách</span>
+              <span class="user-role-badge" id="topbar-user-role">Administrator</span>
+            </div>
+            <span class="user-status-dot" id="topbar-status-dot"></span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ================= VIEW 1: GIỚI THIỆU HỆ THỐNG (LANDING & OVERVIEW) ================= -->
+      <section class="view active" id="overview">
+        <div class="hero-frame" id="hero-banner">
+          <div class="hero-bg"></div>
+          <div class="hero-content">
+            <div class="eyebrow"><span></span> AI-POWERED ENTERPRISE PLATFORM</div>
+            <h1>DCT <span>AI</span></h1>
+            <h2>Nền Tảng Hỗ Trợ Quyết Định Mở Rộng Thị Trường</h2>
+            <p>Hệ thống AI Agent tự động hóa quá trình thu thập dữ liệu, đối soát lỗi thống kê, đánh giá độ khớp sản
+              phẩm WMS và đề xuất địa bàn khảo sát tối ưu cho chuỗi bán lẻ.</p>
+            <div class="hero-tags">
+              <span>🏢 B2B WMS SaaS</span>
+              <span>🤖 Multi-Skill AI Agent</span>
+              <span>🛡️ Audit-Ready</span>
+              <span>📊 Excel · Word · PPT</span>
+            </div>
+          </div>
+          <div class="hero-orbit orbit-one"></div>
+          <div class="hero-orbit orbit-two"></div>
+          <div class="hero-glow"></div>
+          <div class="hero-note"><b>“Dữ liệu chính xác</b><br>Quyết định sáng suốt”</div>
+        </div>
+
+        <div
+          style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:14px; padding:18px 24px; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow); margin-bottom:20px;">
+          <div>
+            <h3 style="margin:0 0 4px; font-size:15px; color:var(--text-main);">Bạn đã sẵn sàng phân tích dữ liệu chưa?
+            </h3>
+            <p style="margin:0; font-size:12px; color:var(--text-muted);">Chuyển sang phân hệ Xử lý & Khởi chạy để kéo
+              thả các tệp Excel, Word, PPT và nhận kết quả phân tích tự động.</p>
+          </div>
+          <button class="primary-btn" onclick="switchView('input')" style="padding:11px 20px; font-size:12px;">
+            Bắt đầu Xử lý & Khởi chạy ngay &rarr;
+          </button>
+        </div>
+
+        <!-- 4 THẺ NĂNG LỰC CỐT LÕI (CORE CAPABILITIES) -->
+        <div class="intro-grid">
+          <div class="feature-card">
+            <div class="feature-icon-box">📊</div>
+            <div style="flex:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <h4 style="margin:0; font-size:14px; font-weight:700; color:var(--text-main);">Quy Chuẩn Dữ Liệu Đa Định
+                  Dạng</h4>
+                <span class="file-type-badge badge-excel" style="font-size:9px;">Excel · Word · PPT</span>
+              </div>
+              <p style="margin:0; font-size:12px; color:var(--text-muted); line-height:1.65;">
+                Tiếp nhận trực tiếp các tệp <strong>.xlsx</strong>, <strong>.docx</strong> và <strong>.pptx</strong>. Hệ
+                thống tự động bóc tách số liệu thống kê, tài liệu nghiên cứu địa bàn và slide chiến lược.
+              </p>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-box">🔍</div>
+            <div style="flex:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <h4 style="margin:0; font-size:14px; font-weight:700; color:var(--text-main);">Bộ Máy Khử Trùng Lặp &
+                  Đối Soát</h4>
+                <span class="file-type-badge badge-word" style="font-size:9px;">Auto Deduplication</span>
+              </div>
+              <p style="margin:0; font-size:12px; color:var(--text-muted); line-height:1.65;">
+                AI Agent phát hiện và khử bỏ <strong>160 số liệu sao chép</strong> tại Đà Nẵng, bóc tách <strong>180 hộ
+                  cá thể</strong> tại Cần Thơ, đồng bộ các kỳ báo cáo lệch pha về chuẩn hóa 2025.
+              </p>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-box">⚙️</div>
+            <div style="flex:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <h4 style="margin:0; font-size:14px; font-weight:700; color:var(--text-main);">Kiểm Soát Năng Lực
+                  On-site SLA</h4>
+                <span class="file-type-badge badge-ppt" style="font-size:9px;">Team 5 Kỹ Sư</span>
+              </div>
+              <p style="margin:0; font-size:12px; color:var(--text-muted); line-height:1.65;">
+                Ràng buộc chặt chẽ với giới hạn <strong>01 đội ngũ triển khai (05 kỹ sư)</strong>. Tự động cảnh báo rủi
+                ro kiệt sức nhân sự nếu địa bàn yêu cầu trực on-site 24/7 (như Cần Thơ).
+              </p>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-box">📑</div>
+            <div style="flex:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <h4 style="margin:0; font-size:14px; font-weight:700; color:var(--text-main);">Đầu Ra Chuẩn Hóa: Excel,
+                  Word, PPT</h4>
+                <span class="file-type-badge badge-excel" style="font-size:9px;">Audit Ready</span>
+              </div>
+              <p style="margin:0; font-size:12px; color:var(--text-muted); line-height:1.65;">
+                Xuất file Excel Ma trận chấm điểm & danh sách Leads, file Word Tờ trình trình Ban Giám Đốc có căn cứ
+                kiểm định, và file Slide PowerPoint 5 trang sẵn sàng thuyết trình.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- KHỐI HƯỚNG DẪN LỘ TRÌNH 4 BƯỚC -->
+        <div class="step-guide-card">
+          <div
+            style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--card-border); padding-bottom:12px;">
+            <div>
+              <span class="file-type-badge badge-word" style="font-size:10px; font-weight:700;">HƯỚNG DẪN VẬN
+                HÀNH</span>
+              <h3 style="margin:6px 0 0; font-size:15px; font-weight:800; color:var(--text-main);">Lộ Trình Thẩm Định
+                Khảo Sát 4 Bước</h3>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:600;">⚡ Tự động hóa khép kín</span>
+          </div>
+
+          <div class="guide-flow">
+            <div class="guide-step-item">
+              <div class="guide-step-num">1</div>
+              <strong>Kéo Thả Dữ Liệu</strong>
+              <p>Nạp các tệp Excel, Word, PPT chứa dữ liệu thị trường và năng lực triển khai.</p>
+            </div>
+            <div class="guide-step-item">
+              <div class="guide-step-num">2</div>
+              <strong>Làm Sạch & So Khớp</strong>
+              <p>AI Agent tự động khử trùng lặp và đo lường Fit-score giải pháp WMS.</p>
+            </div>
+            <div class="guide-step-item">
+              <div class="guide-step-num">3</div>
+              <strong>Đánh Giá Khả Thi</strong>
+              <p>Đối chiếu yêu cầu on-site của khách hàng với năng lực 01 đội ngũ (5 kỹ sư).</p>
+            </div>
+            <div class="guide-step-item">
+              <div class="guide-step-num">4</div>
+              <strong>Đề Xuất & Xuất Tệp</strong>
+              <p>Xác lập Top 2 tối ưu và xuất báo cáo dưới dạng Excel, Word, PowerPoint.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 2: PHÂN HỆ XỬ LÝ DỮ LIỆU TÍCH HỢP & CHATBOT LIÊN KẾT PHÁT SÁNG ================= -->
+      <section class="view" id="input">
+        <div class="page-intro">
+          <span class="eyebrow">INTEGRATED PROCESSING HUB</span>
+          <h1>Trung tâm Tiếp nhận & Xử lý Dữ liệu</h1>
+          <p>Kéo thả các tệp đầu vào, bấm khởi chạy AI Agent và theo dõi kết quả thẩm định trực tiếp ngay tại phân hệ
+            này.</p>
+        </div>
+
+        <!-- 1. VÙNG KÉO THẢ TỆP VÀ KHỞI CHẠY DỮ LIỆU -->
+        <div class="panel upload-panel" id="drop-zone" style="margin-bottom:20px;">
+          <div class="upload-icon">⇧</div>
+          <h2 style="margin:0 0 6px; font-size:16px;">KÉO THẢ TỆP EXCEL, WORD, POWERPOINT VÀO ĐÂY</h2>
+          <p style="margin:0 0 16px; font-size:11px; color:var(--text-muted);">Hỗ trợ kéo thả trực tiếp tệp từ máy tính
+            của bạn (.xlsx, .xls, .docx, .doc, .pptx, .ppt)</p>
+
+          <div style="display:flex; justify-content:center; align-items:center;">
+            <label class="primary-btn file-label"
+              style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:11px 26px; font-size:13px; font-weight:700; border-radius:10px; box-shadow:0 6px 18px rgba(40,121,238,0.35);">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Chọn tệp từ máy tính
+              <input id="file-input" type="file" accept=".xlsx,.xls,.docx,.doc,.pptx,.ppt,.json,.csv" multiple hidden>
+            </label>
+          </div>
+
+          <div id="file-list" class="file-list" style="margin-top:16px;">
+            <div id="file-empty-prompt"
+              style="padding:22px; color:var(--text-muted); font-style:italic; border:1px dashed var(--card-border); border-radius:8px;">
+              Chưa có tệp nào được tải lên. Hãy kéo thả các tệp Excel, Word, PPT vào khung này để hệ thống tiếp nhận.
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. HÀNG 4 THẺ THỐNG KÊ -->
+        <div class="stats-grid" style="margin-bottom:20px;">
+          <article class="stat-card blue">
+            <div class="stat-icon">▦</div>
+            <div>
+              <label>ĐỊA BÀN NGHIÊN CỨU</label>
+              <strong id="stat-territories-count">0</strong>
+              <small id="stat-territories-desc">Chờ nạp tệp Excel/Word/PPT</small>
+            </div>
+            <div class="spark"><i></i><i></i><i></i><i></i><i></i></div>
+          </article>
+          <article class="stat-card green">
+            <div class="stat-icon">♜</div>
+            <div>
+              <label>ĐỊA BÀN ĐỀ XUẤT</label>
+              <strong id="stat-proposals-count">--</strong>
+              <small id="stat-proposals-desc">Chờ chạy quy trình</small>
+            </div>
+            <div class="spark"><i></i><i></i><i></i><i></i><i></i></div>
+          </article>
+          <article class="stat-card violet">
+            <div class="stat-icon">▤</div>
+            <div>
+              <label>DỮ LIỆU ĐÃ XỬ LÝ</label>
+              <strong id="processed-count">0 / 18</strong>
+              <small id="processed-desc">Chưa có tệp nào</small>
+            </div>
+            <div class="spark"><i></i><i></i><i></i><i></i><i></i></div>
+          </article>
+          <article class="stat-card amber">
+            <div class="stat-icon">ϟ</div>
+            <div>
+              <label>TIẾN ĐỘ AGENT</label>
+              <strong id="progress-number">0%</strong>
+              <small id="progress-desc">Chờ khởi chạy</small>
+              <div class="mini-progress"><span id="progress-fill" style="width: 0%;"></span></div>
+            </div>
+          </article>
+        </div>
+
+        <!-- 3. QUY TRÌNH XỬ LÝ LIÊN HOÀN (CÓ HIỆU ỨNG PHÁT SÁNG THEO CHATBOT) -->
+        <article class="panel pipeline-panel" style="margin-bottom:20px;">
+          <div class="panel-heading">
+            <div><span class="heading-icon">⌘</span>
+              <h3>Quy trình xử lý dữ liệu liên hoàn</h3>
+            </div>
+            <span class="status" id="pipeline-status">Chờ dữ liệu đầu vào</span>
+          </div>
+
+          <div class="pipeline" id="pipeline-steps-container">
+            <div class="pipeline-step waiting" id="step-1" data-task="1" title="Bấm mở/đóng chi tiết Task 1">
+              <span class="step-number">1</span>
+              <span class="step-check">○</span>
+              <b>Data Collection<br>& Cleaning</b>
+              <small>Thu thập từ Excel, Word, PPT</small>
+            </div>
+            <div class="connector">›</div>
+
+            <div class="pipeline-step waiting" id="step-2" data-task="2" title="Bấm mở/đóng chi tiết Task 2">
+              <span class="step-number">2</span>
+              <span class="step-check">○</span>
+              <b>Market Fit<br>Analysis</b>
+              <small>Đối chiếu nhu cầu và sản phẩm</small>
+            </div>
+            <div class="connector">›</div>
+
+            <div class="pipeline-step waiting" id="step-3" data-task="3" title="Bấm mở/đóng chi tiết Task 3">
+              <span class="step-number">3</span>
+              <span class="step-check">○</span>
+              <b>Opportunity<br>Evaluation</b>
+              <small>Chấm điểm và xếp hạng địa bàn</small>
+            </div>
+            <div class="connector">›</div>
+
+            <div class="pipeline-step waiting" id="step-4" data-task="4" title="Bấm mở/đóng chi tiết Task 4">
+              <span class="step-number">4</span>
+              <span class="step-check">○</span>
+              <b>Human<br>Review</b>
+              <small>Quản lý xem xét và phê duyệt</small>
+            </div>
+          </div>
+
+          <div class="pipeline-footer">
+            <span id="pipeline-info-msg"><i class="pulse"></i> Hãy kéo thả tệp vào để kích hoạt quy trình</span>
+            <div style="display:flex; gap:10px;">
+              <button class="primary-btn" id="run-agent" disabled
+                style="opacity:0.6; cursor:not-allowed; padding:10px 22px; font-size:12px;">
+                ▶ Khởi Chạy AI Agent Xử Lý Dữ Liệu
+              </button>
+            </div>
+          </div>
+
+          <!-- ================= CÁC TASK ĐÓNG / MỞ (ACCORDION) ================= -->
+          <div style="margin-top:20px; border-top:1px solid var(--card-border); padding-top:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Kết Quả
+                Chi Tiết 4 Task (Click Để Đóng / Mở):</span>
+              <button class="ghost-btn" style="padding:4px 10px; font-size:10px;" onclick="toggleAllTasks()">Mở / Thu
+                gọn tất cả</button>
+            </div>
+
+            <div class="task-collapsible" id="accordion-task-1" data-task="1">
+              <div class="task-collapsible-header" onclick="toggleTaskAccordion(1)">
+                <span><b style="color:var(--theme-primary);">Task 1:</b> Data Collection & Cleaning (Khử số liệu lặp từ
+                  Excel, Word, PPT)</span>
+                <span class="toggle-arrow">▼</span>
+              </div>
+              <div class="task-collapsible-content">
+                <div id="task-1-content-text">
+                  <p style="color:var(--text-muted); font-style:italic;">Chưa có dữ liệu xử lý. Vui lòng nạp tệp và khởi
+                    chạy để xem kết quả.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="task-collapsible" id="accordion-task-2" data-task="2">
+              <div class="task-collapsible-header" onclick="toggleTaskAccordion(2)">
+                <span><b style="color:var(--theme-primary);">Task 2:</b> Market Fit Analysis (Độ khớp tính năng WMS
+                  Retail Edition)</span>
+                <span class="toggle-arrow">▼</span>
+              </div>
+              <div class="task-collapsible-content">
+                <div id="task-2-content-text">
+                  <p style="color:var(--text-muted); font-style:italic;">Chưa có dữ liệu xử lý. Vui lòng nạp tệp và khởi
+                    chạy để xem kết quả.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="task-collapsible" id="accordion-task-3" data-task="3">
+              <div class="task-collapsible-header" onclick="toggleTaskAccordion(3)">
+                <span><b style="color:var(--theme-primary);">Task 3:</b> Opportunity Evaluation (Thẩm định On-site SLA
+                  của đội ngũ 5 người)</span>
+                <span class="toggle-arrow">▼</span>
+              </div>
+              <div class="task-collapsible-content">
+                <div id="task-3-content-text">
+                  <p style="color:var(--text-muted); font-style:italic;">Chưa có dữ liệu xử lý. Vui lòng nạp tệp và khởi
+                    chạy để xem kết quả.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="task-collapsible" id="accordion-task-4" data-task="4">
+              <div class="task-collapsible-header" onclick="toggleTaskAccordion(4)">
+                <span><b style="color:var(--theme-primary);">Task 4:</b> Human Review (Đề xuất Top 2 & Xuất Báo
+                  Cáo)</span>
+                <span class="toggle-arrow">▼</span>
+              </div>
+              <div class="task-collapsible-content">
+                <div id="task-4-content-text">
+                  <p style="color:var(--text-muted); font-style:italic;">Chưa có dữ liệu xử lý. Vui lòng hoàn thành phân
+                    tích để xem kết quả đề xuất.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ================= CHATBOT COPILOT TƯƠNG TÁC PHÁT SÁNG CÁC TASK KHI DI CHUỘT ================= -->
+        <article class="chatbot-dock">
+          <div
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--card-border); pb:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:20px;">🤖</span>
+              <div>
+                <strong style="font-size:13px; color:var(--text-main);">AI Copilot Cố Vấn Chiến Lược Hưng Phát</strong>
+                <small style="display:block; font-size:10px; color:var(--text-muted);">Di chuột vào các badge Task bên
+                  dưới để làm sáng các Task tương ứng trên quy trình</small>
+              </div>
+            </div>
+            <span class="tiny-badge" style="background:#e0f2fe; color:#0284c7;">INTERACTIVE COPILOT</span>
+          </div>
+
+          <!-- Gợi ý nhanh -->
+          <div style="margin-bottom:12px;">
+            <span
+              style="font-size:10px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">GỢI Ý
+              CÂU HỎI TRỌNG TÂM (DI CHUỘT ĐỂ SÁNG TASK):</span>
+            <span class="chat-quick-prompt" onclick="askCopilotQuestion('can_tho')" onmouseenter="highlightTask(3)"
+              onmouseleave="unhighlightTasks()">
+              ❓ Tại sao loại trừ Cần Thơ? (<span class="task-badge-link" data-highlight="3">Sáng Task 3</span>)
+            </span>
+            <span class="chat-quick-prompt" onclick="askCopilotQuestion('da_nang')" onmouseenter="highlightTask(2)"
+              onmouseleave="unhighlightTasks()">
+              ❓ Ưu thế vượt trội của Đà Nẵng? (<span class="task-badge-link" data-highlight="2">Sáng Task 2</span>)
+            </span>
+            <span class="chat-quick-prompt" onclick="askCopilotQuestion('data_cleaning')"
+              onmouseenter="highlightTask(1)" onmouseleave="unhighlightTasks()">
+              ❓ Dữ liệu đã làm sạch những gì? (<span class="task-badge-link" data-highlight="1">Sáng Task 1</span>)
+            </span>
+            <span class="chat-quick-prompt" onclick="askCopilotQuestion('proposal')" onmouseenter="highlightTask(4)"
+              onmouseleave="unhighlightTasks()">
+              ❓ Luận điểm trình Ban Giám Đốc? (<span class="task-badge-link" data-highlight="4">Sáng Task 4</span>)
+            </span>
+          </div>
+
+          <!-- Khung tin nhắn phản hồi của Chatbot -->
+          <div id="chatbot-response-box" class="chat-bubble ai">
+            <strong>Trợ lý DCT AI:</strong> Chào Trưởng phòng! Khi bạn di chuột vào các huy hiệu task như
+            <span class="task-badge-link" onmouseenter="highlightTask(1)" onmouseleave="unhighlightTasks()">[Task 1: Làm
+              sạch dữ liệu]</span>,
+            <span class="task-badge-link" onmouseenter="highlightTask(2)" onmouseleave="unhighlightTasks()">[Task 2:
+              Fit-score WMS]</span>,
+            <span class="task-badge-link" onmouseenter="highlightTask(3)" onmouseleave="unhighlightTasks()">[Task 3:
+              On-site SLA]</span> hoặc
+            <span class="task-badge-link" onmouseenter="highlightTask(4)" onmouseleave="unhighlightTasks()">[Task 4: Phê
+              duyệt đề xuất]</span>,
+            các task tương ứng trên quy trình sẽ <strong>sáng bừng neon rực rỡ</strong> để bạn dễ dàng theo dõi trực
+            quan!
+          </div>
+        </article>
+
+        <!-- 4. KẾT QUẢ TÍCH HỢP NGAY TẠI ĐÂY: BẢNG SO SÁNH 4 ĐỊA BÀN & ĐỀ XUẤT TOP 2 -->
+        <div class="dashboard-grid" style="margin-top:20px;">
+          <!-- Bảng so sánh 4 địa bàn -->
+          <article class="panel comparison-panel">
+            <div class="panel-heading">
+              <div><span class="heading-icon">▥</span>
+                <h3>So sánh và xếp hạng 4 địa bàn</h3>
+              </div>
+              <button class="select-btn" id="sort-btn">Điểm tổng hợp ⌵</button>
+            </div>
+
+            <div id="table-container">
+              <div class="empty-state-banner" id="table-empty-state">
+                <div class="empty-icon">📂</div>
+                <h4>Chưa có dữ liệu địa bàn được tính toán</h4>
+                <p>Kéo thả tệp dữ liệu vào khung trên và nhấn "Khởi Chạy AI Agent Xử Lý Dữ Liệu" để bảng số liệu xuất
+                  hiện.</p>
+              </div>
+
+              <div class="table-wrap" id="table-wrap" style="display:none;">
+                <table id="main-compare-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Địa bàn</th>
+                      <th>Điểm tổng hợp</th>
+                      <th>Nhu cầu</th>
+                      <th>Độ phù hợp SP</th>
+                      <th>Năng lực</th>
+                      <th>Đề xuất</th>
+                    </tr>
+                  </thead>
+                  <tbody id="compare-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+            <p class="table-disclaimer" id="table-disclaimer">* Bảng dữ liệu tự động cập nhật ngay khi hoàn tất 4 task
+              xử lý.</p>
+          </article>
+
+          <!-- Kết quả đề xuất Top 2 & Cụm xuất báo cáo Excel, Word, PPT -->
+          <article class="panel recommendation-panel">
+            <div class="panel-heading">
+              <div><span class="heading-icon">✧</span>
+                <h3>Kết quả đề xuất</h3>
+              </div>
+              <span class="tiny-badge gold" id="rec-badge">CHỜ KẾT QUẢ</span>
+            </div>
+
+            <div id="rec-empty-state" style="padding:25px 10px; color:var(--text-muted);">
+              <div class="trophy" style="filter:grayscale(1); opacity:0.35;">🏆</div>
+              <h4 style="color:var(--text-muted); margin-top:8px;">Chưa xác định Top 2</h4>
+              <p style="font-size:11px; margin:10px 0;">Kết quả đề xuất chỉ hiển thị sau khi hệ thống hoàn tất xử lý tệp
+                dữ liệu.</p>
+            </div>
+
+            <div id="rec-filled-content" style="display:none;">
+              <div class="trophy">🏆</div>
+              <h4>Hai địa bàn ưu tiên khảo sát</h4>
+              <div class="winner-grid">
+                <div class="winner" id="winner-a" title="Xem chi tiết Địa bàn A">
+                  <small>ĐỊA BÀN A</small>
+                  <b>92.5<span>/100</span></b>
+                  <em>Ưu tiên số 1</em>
+                </div>
+                <div class="winner" id="winner-b" title="Xem chi tiết Địa bàn B">
+                  <small>ĐỊA BÀN B</small>
+                  <b>85.2<span>/100</span></b>
+                  <em>Ưu tiên số 2</em>
+                </div>
+              </div>
+              <ul class="reasons">
+                <li>Tiềm năng thị trường cao</li>
+                <li>Phù hợp với giải pháp WMS</li>
+                <li>Năng lực triển khai đáp ứng 100% SLA</li>
+              </ul>
+
+              <!-- 3 NÚT XUẤT FILE ĐẦU RA EXCEL, WORD, POWERPOINT -->
+              <div style="margin-top:15px; border-top:1px solid var(--card-border); padding-top:12px; text-align:left;">
+                <span
+                  style="font-size:10px; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px;">XUẤT
+                  KẾT QUẢ ĐẦU RA:</span>
+                <div class="export-btn-group">
+                  <button class="btn-export-excel" onclick="exportExcelDeliverable()"
+                    title="Xuất bảng số liệu và danh sách Lead (.xlsx)">📊 Excel</button>
+                  <button class="btn-export-word" onclick="exportWordDeliverable()"
+                    title="Xuất Tờ trình đề xuất (.docx)">📄 Word</button>
+                  <button class="btn-export-ppt" onclick="exportPptDeliverable()"
+                    title="Xuất Slide trình chiếu BGĐ (.pptx)">📑 PowerPoint</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="human-note">ⓘ Kết quả tham khảo. Quyết định cuối cùng thuộc Trưởng phòng và Ban Giám đốc.</div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 3: PHÂN TÍCH THỊ TRƯỜNG ================= -->
+      <section class="view" id="analysis">
+        <div class="page-intro">
+          <span class="eyebrow">AI SKILLS ORCHESTRATION</span>
+          <h1>Phân tích thị trường chuyên sâu</h1>
+          <p>Các kỹ năng nghiệp vụ phối hợp trong cùng một quy trình xử lý khép kín.</p>
+        </div>
+        <div class="skill-grid">
+          <article class="panel skill-card">
+            <span class="skill-no">SKILL 01</span>
+            <div class="skill-icon">⌁</div>
+            <h3>Data Collection & Cleaning</h3>
+            <p>Đọc hiểu tệp Excel, Word, PPT. Khử 160 bản ghi lặp ở Đà Nẵng, bóc tách 180 hộ cá thể Cần Thơ về chuẩn
+              2025.</p>
+            <span class="status" id="skill-1-status">Chờ khởi chạy</span>
+          </article>
+          <article class="panel skill-card">
+            <span class="skill-no">SKILL 02</span>
+            <div class="skill-icon">◈</div>
+            <h3>Market Fit Analysis</h3>
+            <p>Đối chiếu nhu cầu khách hàng với WMS: Bình Dương 93% Fit, Đà Nẵng 85% Fit, Cần Thơ lệch kho lạnh (-25°C).
+            </p>
+            <span class="status" id="skill-2-status">Chờ khởi chạy</span>
+          </article>
+          <article class="panel skill-card">
+            <span class="skill-no">SKILL 03</span>
+            <div class="skill-icon">◉</div>
+            <h3>Opportunity Evaluation</h3>
+            <p>Thẩm định On-site SLA với đội ngũ 5 người. Áp dụng ma trận trọng số xếp hạng Top 2 tối ưu.</p>
+            <span class="status" id="skill-3-status">Chờ khởi chạy</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 4: SO SÁNH ĐỊA BÀN ================= -->
+      <section class="view" id="compare">
+        <div class="page-intro">
+          <span class="eyebrow">OPPORTUNITY SCORING</span>
+          <h1>So sánh kết quả toàn diện</h1>
+          <p>Đối chiếu tiềm năng, độ phù hợp sản phẩm và năng lực triển khai thực tế của đội ngũ 5 người.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-heading">
+            <div><span class="heading-icon">▥</span>
+              <h3>Bảng đánh giá toàn diện 4 địa bàn (MCDA Matrix)</h3>
+            </div>
+            <button class="btn-export-excel" onclick="exportExcelDeliverable()">📊 Xuất bảng Excel</button>
+          </div>
+          <div class="table-wrap">
+            <table id="full-compare-table">
+              <thead>
+                <tr>
+                  <th>Địa bàn</th>
+                  <th>Điểm tổng hợp</th>
+                  <th>Nhu cầu thị trường</th>
+                  <th>Độ phù hợp WMS</th>
+                  <th>Khả thi On-site (Team 5)</th>
+                  <th>Quy mô chuẩn hóa</th>
+                  <th>Trạng thái đề xuất</th>
+                </tr>
+              </thead>
+              <tbody id="full-compare-tbody"></tbody>
+            </table>
+          </div>
+          <div id="compare-empty-note"
+            style="padding:25px; text-align:center; color:var(--text-muted); font-size:11px;">
+            Chưa có kết quả tính toán. Hãy nạp tệp tại mục "Xử lý & Khởi chạy" để cập nhật bảng so sánh.
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 5: BÁO CÁO KẾT QUẢ (NÂNG CẤP THÀNH EXECUTIVE ANALYTICS DASHBOARD) ================= -->
+      <section class="view" id="reports">
+        <div class="page-intro">
+          <span class="eyebrow">EXECUTIVE ANALYTICS DASHBOARD</span>
+          <h1>Báo Cáo Kết Quả Phân Tích Mở Rộng Thị Trường</h1>
+          <p>Bảng phân tích trực quan hóa toàn diện số liệu đa chiều, ma trận so sánh, hiệu suất chuyển đổi và tờ trình
+            Ban Giám Đốc.</p>
+        </div>
+
+        <!-- KHỐI CHỜ DỮ LIỆU (EMPTY STATE - KHI CHƯA NÉM DỮ LIỆU VÀO) -->
+        <div class="reports-empty-box" id="reports-empty-state">
+          <div class="reports-empty-icon">📊</div>
+          <h2 style="font-size:18px; font-weight:800; margin:0 0 10px; color:var(--text-main);">Chưa Có Dữ Liệu Báo Cáo
+            Phân Tích</h2>
+          <p style="font-size:12px; color:var(--text-muted); line-height:1.7; max-width:560px; margin:0 auto;">
+            Hệ thống cần dữ liệu đầu vào để AI Agent thực hiện đối soát 4 địa bàn, khử trùng lặp và tính điểm xếp hạng.
+            Hãy ném tệp dữ liệu vào phân hệ <strong>Xử lý & Khởi chạy</strong> để mở khóa toàn bộ báo cáo kết quả.
+          </p>
+          <div class="reports-empty-pills">
+            <span class="reports-empty-pill">✓ 4 Thẻ chỉ số Executive KPIs</span>
+            <span class="reports-empty-pill">✓ Biểu đồ Cột & Radar 5 Chiều</span>
+            <span class="reports-empty-pill">✓ Bộ file Excel, Word, Slide PPTX</span>
+            <span class="reports-empty-pill">✓ Tờ trình Ban Giám Đốc đã kiểm toán</span>
+          </div>
+          <div>
+            <button class="primary-btn" onclick="switchView('input')"
+              style="padding:12px 26px; font-size:13px; font-weight:700; border-radius:10px; box-shadow:0 8px 24px rgba(40,121,238,0.35);">
+              ⇧ Đến Trung Tâm Tiếp Nhận & Nạp Dữ Liệu Ngay
+            </button>
+          </div>
+        </div>
+
+        <!-- KHỐI KẾT QUẢ ĐẦY ĐỦ (CHỈ HIỂN THỊ KHI ĐÃ NÉM DỮ LIỆU VÀO) -->
+        <div id="reports-results-container" style="display:none;">
+          <!-- 4 THẺ CHỈ SỐ PHÂN TÍCH QUẢN TRỊ (EXECUTIVE KPIS) -->
+          <div class="analytics-kpis-grid">
+            <div class="analytics-kpi-card">
+              <label>Độ Tin Cậy Của AI Quyết Định</label>
+              <strong>96.8%</strong>
+              <small>✓ Dữ liệu đã đối soát 100%</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <label>Độ Phù Hợp WMS Trung Bình</label>
+              <strong>89.0%</strong>
+              <small>✓ Phân khúc bán lẻ cốt lõi</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <label>Tối Ưu Chi Phí On-Site SLA</label>
+              <strong>-45.2%</strong>
+              <small>✓ Nhờ ưu tiên Bình Dương & ĐN</small>
+            </div>
+            <div class="analytics-kpi-card">
+              <label>Thời Gian Hoàn Vốn Dự Kiến</label>
+              <strong>3.5 Tháng</strong>
+              <small>✓ Sau khi Go-live chuỗi Pilot</small>
+            </div>
+          </div>
+
+          <!-- KHỐI BIỂU ĐỒ PHÂN TÍCH TRỰC QUAN (CHARTS DASHBOARD) -->
+          <div class="analytics-charts-grid">
+            <!-- 1. Biểu đồ Cột So Sánh 4 Địa Bàn -->
+            <div class="chart-panel">
+              <div class="panel-heading" style="margin-bottom:12px;">
+                <div><span class="heading-icon">📊</span>
+                  <h3 style="font-size:13px;">So Sánh Điểm Số Toàn Diện 4 Địa Bàn</h3>
+                </div>
+                <span class="status success">Trực quan hóa</span>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="barAnalyticsChart"></canvas>
+              </div>
+            </div>
+
+            <!-- 2. Biểu đồ Radar Phân Tích 5 Khía Cạnh -->
+            <div class="chart-panel">
+              <div class="panel-heading" style="margin-bottom:12px;">
+                <div><span class="heading-icon">🕸️</span>
+                  <h3 style="font-size:13px;">Ma Trận 5 Chiều: Top 1 vs Top 2</h3>
+                </div>
+                <span class="status success">Radar Analysis</span>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="radarAnalyticsChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 NÚT XUẤT FILE QUY CHUẨN ĐẦU RA -->
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:15px; margin-bottom:20px;">
+            <div class="panel" style="border-top:3px solid #107c41;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <span class="file-type-badge badge-excel" style="font-size:12px;">📊 BÁO CÁO EXCEL</span>
+              </div>
+              <h3 style="font-size:13px; margin:0 0 6px;">Ma trận chấm điểm & Danh sách Leads</h3>
+              <p style="font-size:11px; color:var(--text-muted); line-height:1.6; margin:0 0 14px;">Bảng tổng hợp điểm
+                số chi tiết 4 địa bàn, đối chiếu năng lực SLA và lọc danh sách 32 khách hàng tiềm năng.</p>
+              <button class="btn-export-excel" style="width:100%; justify-content:center;"
+                onclick="exportExcelDeliverable()">
+                Tải file Excel (.xlsx)
+              </button>
+            </div>
+
+            <div class="panel" style="border-top:3px solid #185abd;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <span class="file-type-badge badge-word" style="font-size:12px;">📄 TỜ TRÌNH WORD</span>
+              </div>
+              <h3 style="font-size:13px; margin:0 0 6px;">Tờ trình đề xuất lựa chọn 2 địa bàn</h3>
+              <p style="font-size:11px; color:var(--text-muted); line-height:1.6; margin:0 0 14px;">Văn bản hành chính
+                chuẩn B2B gửi Ban Giám Đốc, có căn cứ kiểm định dữ liệu và phần ký duyệt chính thức.</p>
+              <button class="btn-export-word" style="width:100%; justify-content:center;"
+                onclick="exportWordDeliverable()">
+                Tải file Word (.docx)
+              </button>
+            </div>
+
+            <div class="panel" style="border-top:3px solid #c43e1c;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <span class="file-type-badge badge-ppt" style="font-size:12px;">📑 SLIDE POWERPOINT</span>
+              </div>
+              <h3 style="font-size:13px; margin:0 0 6px;">Bộ Slide trình bày Ban Giám Đốc</h3>
+              <p style="font-size:11px; color:var(--text-muted); line-height:1.6; margin:0 0 14px;">Slide thuyết trình 5
+                trang tóm tắt bối cảnh, kết quả phân tích và lộ trình khảo sát tại Bình Dương & Đà Nẵng.</p>
+              <button class="btn-export-ppt" style="width:100%; justify-content:center;"
+                onclick="exportPptDeliverable()">
+                Tải Slide PowerPoint (.pptx)
+              </button>
+            </div>
+          </div>
+
+          <!-- BẢN XEM TRƯỚC TỜ TRÌNH CHÍNH THỨC -->
+          <div class="panel report-preview">
+            <div class="report-brand">DCT AI <span>MARKET INTELLIGENCE PLATFORM</span></div>
+            <h2>TỜ TRÌNH ĐỀ XUẤT LỰA CHỌN 02 ĐỊA BÀN KHẢO SÁT MỞ RỘNG</h2>
+            <p class="muted">Hồ sơ thẩm định mã số: <strong>HP-EXP-2026-Q1-AUDIT</strong> · Trình Ban Giám Đốc phê duyệt
+            </p>
+            <div class="report-kpis">
+              <div><small>SỐ ĐỊA BÀN ĐÁNH GIÁ</small><b>04</b></div>
+              <div><small>ĐỀ XUẤT KHẢO SÁT</small><b id="report-rec-title">02 (Bình Dương & Đà Nẵng)</b></div>
+              <div><small>TRẠNG THÁI KIỂM TOÁN</small><b style="color:#18b777" id="report-status-badge">ĐÃ SẴN SÀNG</b>
+              </div>
+            </div>
+            <h3>Căn cứ đề xuất chiến lược:</h3>
+            <p id="report-body-text">
+              Qua 10 bước chuẩn hóa từ dữ liệu thị trường, phản hồi khách hàng và giới hạn nguồn lực của <strong>01 đội
+                ngũ triển khai (05 kỹ sư)</strong>:
+              <br>• <strong>Địa bàn A (Bình Dương - 92.5 điểm):</strong> Độ khớp WMS 93%, cự ly 45km đảm bảo 100% SLA hỗ
+              trợ kỹ thuật, chi phí triển khai tối ưu.
+              <br>• <strong>Địa bàn B (Đà Nẵng - 85.2 điểm):</strong> Thị trường bán lẻ du lịch tăng trưởng 22%, đối thủ
+              công nghệ cũ, áp dụng mô hình Hybrid On-site 3 ngày go-live phù hợp sức chứa.
+              <br>• <strong>Loại trừ Cần Thơ & Hải Phòng:</strong> Tránh rủi ro khách hàng đòi trực 24/7 on-site và phân
+              khúc lệch kho lạnh âm sâu/cảng container.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 6: NHẬT KÝ AGENT ================= -->
+      <section class="view" id="logs">
+        <div class="page-intro">
+          <span class="eyebrow">AUDIT TRAIL</span>
+          <h1>Nhật ký Agent</h1>
+          <p>Theo dõi hoạt động, trạng thái xử lý và lịch sử kiểm tra chéo dữ liệu.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-heading">
+            <div><span class="heading-icon">≡</span>
+              <h3>Execution logs (Nhật ký thực thi thời gian thực)</h3>
+            </div>
+            <span class="status success">● Đang hoạt động</span>
+          </div>
+          <div class="log-list" id="logs-list">
+            <div><time>09:00:01</time><b>READY</b><span>Hệ thống DCT AI khởi tạo thành công. Đang ở trạng thái chờ thả
+                tệp dữ liệu.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        © 2026 DCT AI · MARKET INTELLIGENCE PLATFORM
+        <span>DESIGNED FOR BUSINESS DECISIONS · GOOGLE ANTIGRAVITY</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ================= BONG BÓNG CHAT AI NỔI (FLOATING AI COPILOT LAUNCHER) ================= -->
+  <div class="ai-chat-bubble-launcher" id="ai-chat-launcher" onclick="toggleAiChat()"
+    title="Trợ lý DCT AI (Bấm để mở chat)">
+    <div class="ai-bubble-badge-pulse"></div>
+    <div style="font-size:22px;">🤖</div>
+    <span class="ai-bubble-tag">Trợ lý DCT AI</span>
+  </div>
+
+  <!-- ================= CỬA SỔ CHAT AI NỔI (FLOATING AI COPILOT CHAT WINDOW) ================= -->
+  <div class="ai-chat-window" id="ai-chat-window">
+    <div class="ai-chat-header">
+      <div class="ai-chat-title-group">
+        <div class="ai-avatar-online">
+          <span>🤖</span>
+          <i class="online-indicator"></i>
+        </div>
+        <div>
+          <h4 style="margin:0; font-size:13px; font-weight:700; color:var(--text-main);">Trợ Lý DCT AI</h4>
+          <span style="font-size:10px; color:#10b981; font-weight:600;">● Sẵn sàng phản biện & thẩm định</span>
+        </div>
+      </div>
+      <div class="ai-chat-header-actions">
+        <button class="ai-chat-btn-icon" onclick="clearAiChat()" title="Làm mới cuộc trò chuyện">↺</button>
+        <button class="ai-chat-btn-icon" onclick="toggleAiChat()" title="Đóng chat">✕</button>
+      </div>
+    </div>
+
+    <div class="ai-chat-quick-suggestions">
+      <div style="font-size:10px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">GỢI Ý CÂU HỎI TRỌNG TÂM:
+      </div>
+      <div class="ai-prompt-chips">
+        <button class="ai-prompt-chip" type="button" onclick="sendAiChatQuickPrompt('Tại sao loại trừ Cần Thơ?')">❓ Tại
+          sao loại Cần Thơ?</button>
+        <button class="ai-prompt-chip" type="button" onclick="sendAiChatQuickPrompt('Ưu thế vượt trội của Đà Nẵng?')">❓
+          Ưu thế Đà Nẵng?</button>
+        <button class="ai-prompt-chip" type="button" onclick="sendAiChatQuickPrompt('Dữ liệu đã làm sạch những gì?')">❓
+          Dữ liệu đã làm sạch?</button>
+        <button class="ai-prompt-chip" type="button"
+          onclick="sendAiChatQuickPrompt('Kịch bản phản biện Ban Giám Đốc nếu bị yêu cầu chọn Hải Phòng?')">❓ Phản biện
+          Hải Phòng?</button>
+        <button class="ai-prompt-chip" type="button"
+          onclick="sendAiChatQuickPrompt('Nếu tuyển thêm 3 kỹ sư triển khai thì sao?')">❓ Thêm 3 kỹ sư?</button>
+        <button class="ai-prompt-chip" type="button" onclick="sendAiChatQuickPrompt('Luận điểm trình Ban Giám Đốc?')">❓
+          Luận điểm trình BGĐ?</button>
+      </div>
+    </div>
+
+    <div class="ai-chat-body" id="ai-chat-messages">
+      <div class="ai-msg bot">
+        <div class="ai-msg-avatar">🤖</div>
+        <div class="ai-msg-bubble">
+          <strong>Trợ lý DCT AI:</strong> Xin chào Trưởng phòng! Tôi là AI Agent đồng hành phân tích và đối soát thị
+          trường mở rộng WMS.
+          <br><br>Tôi đã sẵn sàng giải đáp thắc mắc về độ khớp giải pháp WMS, khả năng hỗ trợ on-site của đội 5 kỹ sư,
+          hoặc kịch bản phản biện Ban Giám Đốc.
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-chat-footer">
+      <form id="ai-chat-form" onsubmit="handleAiChatSubmit(event)"
+        style="display:flex; gap:8px; width:100%; align-items:center;">
+        <input type="text" id="ai-chat-input" placeholder="Hỏi AI về địa bàn, dữ liệu, phản biện..." autocomplete="off">
+        <button type="submit" id="ai-chat-send-btn" title="Gửi tin nhắn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL QUẢN LÝ TÀI KHOẢN & ĐĂNG NHẬP / ĐĂNG XUẤT ================= -->
+  <div class="auth-modal-backdrop" id="auth-modal" style="display:none;"
+    onclick="if(event.target === this) closeAuthModal();">
+    <div class="auth-modal-card">
+      <div class="auth-modal-head">
+        <div>
+          <span class="auth-badge" id="auth-modal-badge">👤 TÀI KHOẢN HỆ THỐNG</span>
+          <h3 id="auth-modal-heading">Thông tin Tài khoản</h3>
+        </div>
+        <button class="auth-modal-close" onclick="closeAuthModal()" title="Đóng">&times;</button>
+      </div>
+
+      <!-- VIEW KHI ĐÃ ĐĂNG NHẬP (USER PROFILE & LOGOUT) -->
+      <div id="auth-logged-in-view">
+        <div class="auth-user-card">
+          <div class="auth-avatar-big editable" id="auth-card-avatar" onclick="triggerAvatarPicker('profile')"
+            title="Nhấn để thay ảnh đại diện">KH</div>
+          <div class="auth-user-details">
+            <h4 id="auth-card-name">—</h4>
+            <span class="auth-role-tag" id="auth-card-role">—</span>
+            <p class="auth-email" id="auth-card-email">📧 —</p>
+            <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+              <button type="button" class="avatar-link-btn" onclick="triggerAvatarPicker('profile')">📷 Đổi ảnh đại diện</button>
+              <button type="button" class="avatar-link-btn" id="auth-remove-avatar-btn" onclick="removeProfileAvatar()">🗑 Xóa ảnh</button>
+              <button type="button" class="avatar-link-btn" onclick="editProfileName()">✏️ Sửa tên</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-meta-grid">
+          <div class="auth-meta-item">
+            <small>Phòng ban trực thuộc</small>
+            <b id="auth-meta-dept">—</b>
+          </div>
+          <div class="auth-meta-item">
+            <small>Cấp quyền hệ thống</small>
+            <b style="color:#10b981;" id="auth-meta-permission">—</b>
+          </div>
+          <div class="auth-meta-item">
+            <small>Phiên đăng nhập</small>
+            <b id="auth-session-time">—</b>
+          </div>
+          <div class="auth-meta-item">
+            <small>Trạng thái kết nối</small>
+            <b style="color:#2563eb;">● Trực tuyến (Online)</b>
+          </div>
+        </div>
+
+        <div class="auth-actions">
+          <button type="button" class="btn btn-secondary" onclick="showLoginForm()">🔄 Đổi tài khoản</button>
+          <button type="button" class="btn btn-danger" onclick="handleLogout()">🚪 Đăng xuất</button>
+        </div>
+      </div>
+
+      <!-- VIEW KHI CHƯA ĐĂNG NHẬP (FORM LOGIN) -->
+      <div id="auth-logged-out-view" style="display:none;">
+        <p style="font-size:12px; color:var(--text-muted); margin:0 0 16px; line-height:1.6;">
+          Đăng nhập tài khoản để có toàn quyền điều hành AI Agent, thẩm định dữ liệu ma trận và xuất báo cáo Tờ trình
+          Ban Giám Đốc.
+        </p>
+
+        <form id="auth-login-form" onsubmit="handleLoginSubmit(event)" novalidate>
+          <div class="avatar-upload-row">
+            <div class="auth-avatar-big editable" id="login-avatar-preview" onclick="triggerAvatarPicker('login')"
+              title="Nhấn để chọn ảnh đại diện">?</div>
+            <div>
+              <div style="font-size:11px; font-weight:700; color:var(--text-main); margin-bottom:5px;">Ảnh đại diện
+                (không bắt buộc)</div>
+              <button type="button" class="avatar-link-btn" onclick="triggerAvatarPicker('login')">📷 Chọn ảnh</button>
+              <button type="button" class="avatar-link-btn" id="login-avatar-clear" style="display:none;"
+                onclick="clearLoginAvatar()">✕ Bỏ ảnh</button>
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label for="login-fullname"
+              style="display:block; font-size:11px; font-weight:700; margin-bottom:5px; color:var(--text-main);">Họ và
+              tên <span style="color:#e11d48;">*</span></label>
+            <input type="text" id="login-fullname" class="auth-input" placeholder="VD: Nguyễn Văn An" maxlength="60"
+              autocomplete="name" required oninput="onLoginNameInput()">
+            <div class="auth-field-error" id="login-fullname-error">Vui lòng nhập họ và tên thật (ít nhất 2 từ, chỉ gồm
+              chữ cái).</div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label for="login-username"
+              style="display:block; font-size:11px; font-weight:700; margin-bottom:5px; color:var(--text-main);">Email
+              công việc <span style="color:#e11d48;">*</span></label>
+            <input type="email" id="login-username" class="auth-input" placeholder="ten@congty.vn" autocomplete="email"
+              required>
+            <div class="auth-field-error" id="login-username-error">Email không hợp lệ.</div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label for="login-role"
+              style="display:block; font-size:11px; font-weight:700; margin-bottom:5px; color:var(--text-main);">Vai
+              trò</label>
+            <select id="login-role" class="auth-input">
+              <option value="admin">👑 Quản trị viên / Trưởng phòng</option>
+              <option value="analyst">📊 Chuyên viên phân tích</option>
+            </select>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label for="login-password"
+              style="display:block; font-size:11px; font-weight:700; margin-bottom:5px; color:var(--text-main);">Mật
+              khẩu <span style="color:#e11d48;">*</span></label>
+            <input type="password" id="login-password" class="auth-input" placeholder="••••••••"
+              autocomplete="current-password" required>
+            <div class="auth-field-error" id="login-password-error">Mật khẩu phải có ít nhất 6 ký tự.</div>
+          </div>
+
+          <div
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; font-size:11px; color:var(--text-muted);">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="login-remember" checked> Ghi nhớ phiên này
+            </label>
+          </div>
+
+          <div class="auth-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeAuthModal()">Hủy</button>
+            <button type="submit" class="btn btn-primary">🚀 Đăng nhập ngay</button>
+          </div>
+        </form>
+        <input type="file" id="avatar-file-input" accept="image/*" style="display:none;"
+          onchange="handleAvatarFileChange(event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Chi Tiết Tương Tác Giữa Các Task & Địa Bàn -->
+  <div class="modal-backdrop" id="app-modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="modal-title">Chi tiết nhiệm vụ</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="ghost-btn" id="modal-action-btn">Mở màn hình chuyên sâu</button>
+        <button class="primary-btn" onclick="closeModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "hungphat-expansion-agent",
+  "version": "1.0.0",
+  "description": "Hung Phat WMS - Nền Tảng AI Agent Hỗ Trợ Quyết Định Mở Rộng Thị Trường",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "ai-agent",
+    "wms",
+    "market-expansion",
+    "analytics",
+    "dashboard"
+  ],
+  "author": "Hung Phat Technology",
+  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

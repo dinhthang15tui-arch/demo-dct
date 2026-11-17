@@ -1,0 +1,182 @@
+{
+  "company_profile": {
+    "name": "Công ty Cổ phần Giải pháp Quản lý Kho Hưng Phát",
+    "short_name": "Hưng Phát WMS",
+    "headquarters": "TP. Hồ Chí Minh",
+    "core_product": "Hưng Phát WMS Retail Edition (SaaS & Hybrid Cloud)",
+    "target_customers": "Chuỗi bán lẻ đa chi nhánh, siêu thị mini, chuỗi thời trang, dược phẩm, FMCG (từ 5 - 100 điểm bán/kho)",
+    "capabilities": {
+      "features": [
+        "Quản lý vị trí ô kệ (Bin/Location Tracking)",
+        "Quét mã vạch Barcode 1D/2D, QR Code thời gian thực",
+        "Kiểm kê luân phiên không gián đoạn bán hàng",
+        "Tích hợp POS, ERP (SAP B1, Bravo, Misa, KiotViet)",
+        "Tự động cảnh báo hạn sử dụng (FEFO/FIFO) và mức an toàn tồn kho",
+        "Điều phối chuyển kho nội bộ và cross-docking chuỗi bán lẻ"
+      ],
+      "limitations": [
+        "Chưa tích hợp cánh tay robot tự động hóa công nghiệp nặng (AS/RS, AGV)",
+        "Chưa hỗ trợ hệ thống điều khiển tự động hóa kho lạnh âm sâu chuyên biệt (< -25°C)",
+        "Không hỗ trợ khai báo hải quan đặc thù cảng biển / ngoại quan quốc tế"
+      ]
+    },
+    "deployment_capacity": {
+      "team_size": 5,
+      "roles": ["1 Trưởng nhóm giải pháp", "2 Kỹ sư triển khai WMS", "1 Chuyên viên tích hợp POS/ERP", "1 Chuyên viên đào tạo & hỗ trợ KH"],
+      "max_parallel_expansions": 1,
+      "available_territory_slots": 2,
+      "onsite_sla_capacity": "Tối đa 2 đợt hỗ trợ tại chỗ/tháng cho địa bàn cách xa HQ > 300km; Hỗ trợ linh hoạt trong ngày cho địa bàn cách HQ < 100km.",
+      "shift_mode": "Giờ hành chính + On-call trực khẩn cấp từ xa. KHÔNG THỂ cung cấp kỹ sư trực on-site 24/7 cố định tại cơ sở khách hàng."
+    }
+  },
+  "criteria_weights": [
+    { "id": "fit_score", "name": "Độ khớp Giải pháp WMS", "weight": 0.30, "desc": "Nhu cầu tính năng của khách hàng khớp với năng lực sản phẩm Hưng Phát" },
+    { "id": "support_feasibility", "name": "Tính khả thi Hỗ trợ Tại chỗ", "weight": 0.25, "desc": "Phù hợp với năng lực 1 đội ngũ 5 người, không vượt quá SLA on-site" },
+    { "id": "market_size", "name": "Quy mô Thị trường Thực tế", "weight": 0.20, "desc": "Quy mô chuỗi bán lẻ sau khi chuẩn hóa kỳ thống kê và loại bỏ trùng lặp" },
+    { "id": "lead_quality", "name": "Chất lượng Danh sách Khách hàng", "weight": 0.15, "desc": "Tỷ lệ khách hàng tiềm năng sẵn sàng ký kết và chuyển đổi cao" },
+    { "id": "competition_pressure", "name": "Mức độ Cạnh tranh (Nghịch đảo)", "weight": 0.10, "desc": "Địa bàn ít bị đối thủ độc quyền hoặc cạnh tranh phá giá" }
+  ],
+  "territories": [
+    {
+      "id": "T1",
+      "name": "Địa bàn A: Bình Dương & Đông Nam Bộ",
+      "region": "Đông Nam Bộ",
+      "distance_from_hq_km": 45,
+      "travel_time_hours": 1.2,
+      "market_reports": [
+        {
+          "source": "Sở Công Thương Bình Dương - Báo cáo thường niên",
+          "period": "2024",
+          "retail_chains_count": 210,
+          "growth_rate": "18.5%",
+          "notes": "Dữ liệu khảo sát chuỗi bán lẻ vừa và nhỏ, cửa hàng tiện lợi."
+        },
+        {
+          "source": "Hiệp hội Bán lẻ Việt Nam (AVR) - Thị trường Đông Nam Bộ",
+          "period": "Q2/2025",
+          "retail_chains_count": 245,
+          "growth_rate": "19.2%",
+          "notes": "Cập nhật bổ sung 35 chuỗi cửa hàng gia dụng và thời trang mới mở."
+        }
+      ],
+      "data_issues": [
+        "Kỳ thống kê chênh lệch giữa năm 2024 và Q2/2025",
+        "Có 18 chuỗi cửa hàng bị tính 2 lần do trùng đăng ký giữa AVR và Sở Công Thương"
+      ],
+      "competitors": [
+        { "name": "SmartLog WMS", "market_share": "28%", "pricing": "Trung bình cao", "weakness": "Tập trung logistics 3PL, ít tối ưu cho điểm bán lẻ phân tán" },
+        { "name": "Misa AMIS Kho", "market_share": "22%", "pricing": "Thấp", "weakness": "Chỉ có quản lý tồn kho kế toán, thiếu quản lý vị trí bin-location và barcode real-time" }
+      ],
+      "leads": [
+        { "id": "L01", "name": "Chuỗi Siêu thị Mini Gia Đình (35 cửa hàng)", "features_needed": ["Barcode quét nhanh", "Quản lý HSD", "Tự động phân bổ hàng"], "onsite_requirement": "On-site 3 ngày nghiệm thu, sau đó hỗ trợ từ xa", "status": "Rất khả thi" },
+        { "id": "L02", "name": "Hệ thống Nhà thuốc Tân An (50 điểm bán)", "features_needed": ["Quản lý Lô/Hạn FEFO", "Kiểm kê không dừng bán lẻ", "Tích hợp POS"], "onsite_requirement": "Hỗ trợ on-site 1 lần/tuần tháng đầu (gần HQ nên đáp ứng tốt)", "status": "Rất khả thi" },
+        { "id": "L03", "name": "Chuỗi Phụ tùng Xe máy Đông Nam (20 shop)", "features_needed": ["Quản lý ô kệ phụ tùng", "Barcode 2D"], "onsite_requirement": "Đào tạo tại chỗ 2 buổi", "status": "Rất khả thi" },
+        { "id": "L04", "name": "Kho Lạnh Thủy sản Dĩ An (Đông lạnh công nghiệp)", "features_needed": ["Cảm biến lạnh -30C", "Robot tự động AGV"], "onsite_requirement": "Kỹ sư trực 24/7", "status": "Không khớp sản phẩm & Vượt năng lực on-site (Loại)" }
+      ]
+    },
+    {
+      "id": "T2",
+      "name": "Địa bàn B: Đà Nẵng & Duyên Hải Miền Trung",
+      "region": "Miền Trung",
+      "distance_from_hq_km": 850,
+      "travel_time_hours": 1.5,
+      "flight_available": true,
+      "market_reports": [
+        {
+          "source": "Báo cáo VCCI Chi nhánh Đà Nẵng",
+          "period": "Q3/2025",
+          "retail_chains_count": 160,
+          "growth_rate": "22.0%",
+          "notes": "Tăng trưởng mạnh chuỗi bán lẻ du lịch, lưu niệm, đặc sản và siêu thị đặc sản."
+        },
+        {
+          "source": "Tạp chí Logistics & Bán lẻ Việt Nam",
+          "period": "Q3/2025",
+          "retail_chains_count": 160,
+          "growth_rate": "22.0%",
+          "notes": "Trùng lặp nguồn dữ liệu (sao chép trực tiếp số liệu từ VCCI Đà Nẵng)."
+        }
+      ],
+      "data_issues": [
+        "Số liệu lặp 100% giữa Tạp chí Logistics và Báo cáo VCCI (cùng dùng 1 bộ số liệu gốc)",
+        "Nhân viên hiểu nhầm thành 320 chuỗi do cộng gộp 2 báo cáo"
+      ],
+      "competitors": [
+        { "name": "WMS Miền Trung Soft", "market_share": "15%", "pricing": "Trung bình", "weakness": "Công nghệ cũ (desktop client), chưa có bản SaaS Cloud" },
+        { "name": "Các nhà cung cấp từ Hà Nội/TP.HCM", "market_share": "30%", "pricing": "Cao", "weakness": "Không có hỗ trợ kịp thời tại miền Trung, chi phí triển khai đắt đỏ" }
+      ],
+      "leads": [
+        { "id": "L05", "name": "Chuỗi Đặc sản Miền Trung Hương Việt (18 điểm bán)", "features_needed": ["Quản lý hạn dùng", "Cross-docking hàng ngày", "POS Sync"], "onsite_requirement": "Đào tạo tập trung 4 ngày tại Đà Nẵng", "status": "Rất khả thi" },
+        { "id": "L06", "name": "Chuỗi Thời trang DanangStyle (24 cửa hàng)", "features_needed": ["Mã vạch QR", "Điều chuyển nội bộ", "Kiểm kho RFID/Barcode"], "onsite_requirement": "Hỗ trợ on-site khi go-live 3 ngày", "status": "Rất khả thi" },
+        { "id": "L07", "name": "Chuỗi Cửa hàng Bánh mì & F&B Đà Thành (15 chi nhánh)", "features_needed": ["Tồn kho nguyên liệu", "Cảnh báo an toàn"], "onsite_requirement": "Đào tạo online + 1 ngày on-site", "status": "Rất khả thi" },
+        { "id": "L08", "name": "Tổng kho Hàng hải Liên Chiểu", "features_needed": ["Hệ thống kho ngoại quan container", "Khai báo hải quan"], "onsite_requirement": "Đội kỹ thuật on-site thường trực", "status": "Lệch tính năng WMS Hưng Phát (Loại)" }
+      ]
+    },
+    {
+      "id": "T3",
+      "name": "Địa bàn C: Cần Thơ & ĐBSCL",
+      "region": "Tây Nam Bộ",
+      "distance_from_hq_km": 170,
+      "travel_time_hours": 3.5,
+      "market_reports": [
+        {
+          "source": "Báo cáo xúc tiến đầu tư TP. Cần Thơ",
+          "period": "2023",
+          "retail_chains_count": 310,
+          "growth_rate": "15.0%",
+          "notes": "Dữ liệu tổng hợp gộp cả hộ kinh doanh cá thể nhỏ lẻ và đại lý gạo."
+        },
+        {
+          "source": "Cổng thông tin Kinh tế Đồng bằng Sông Cửu Long",
+          "period": "Q1/2024",
+          "retail_chains_count": 290,
+          "growth_rate": "14.2%",
+          "notes": "Báo cáo lỗi thời, chưa cập nhật tình hình sau sáp nhập chuỗi bán lẻ."
+        }
+      ],
+      "data_issues": [
+        "Số liệu lỗi thời (năm 2023 - 2024), chưa đồng bộ kỳ 2025",
+        "Báo cáo gộp cả 180 hộ kinh doanh đơn lẻ không phải chuỗi bán lẻ WMS",
+        "Quy mô thị trường bán lẻ chuỗi thực tế chỉ còn khoảng 65 - 80 doanh nghiệp"
+      ],
+      "competitors": [
+        { "name": "Đại lý phần mềm KiotViet / Sapo", "market_share": "65%", "pricing": "Rất rẻ", "weakness": "Tính năng kho đơn giản, nhưng chiếm lĩnh hầu hết cửa hàng nhỏ" }
+      ],
+      "leads": [
+        { "id": "L09", "name": "Chuỗi Nông sản Sạch Mekong (22 cửa hàng)", "features_needed": ["Kho lạnh bảo quản rau quả", "Yêu cầu kỹ sư túc trực on-site 24/7 tuần đầu"], "onsite_requirement": "Trực 24/7 tại 3 kho trung tâm", "status": "Vượt khả năng hỗ trợ tại chỗ của Hưng Phát" },
+        { "id": "L10", "name": "Chuỗi Bách hóa Miền Tây (40 điểm)", "features_needed": ["Tính năng WMS cơ bản"], "onsite_requirement": "Hỗ trợ on-site liên tục mỗi tuần (khó duy trì với 1 team 5 người)", "status": "Rủi ro quá tải nhân sự" },
+        { "id": "L11", "name": "Hợp tác xã Thủy sản Hậu Giang", "features_needed": ["Quản lý ao nuôi & chế biến xuất khẩu", "Truy xuất nguồn gốc EU"], "onsite_requirement": "Triển khai tại nhà máy chế biến", "status": "Lệch hoàn toàn khỏi WMS bán lẻ" }
+      ]
+    },
+    {
+      "id": "T4",
+      "name": "Địa bàn D: Hải Phòng & Duyên Hải Bắc Bộ",
+      "region": "Bắc Bộ",
+      "distance_from_hq_km": 1750,
+      "travel_time_hours": 3.0,
+      "flight_available": true,
+      "market_reports": [
+        {
+          "source": "Hiệp hội Doanh nghiệp Dịch vụ Logistics Việt Nam (VLA)",
+          "period": "Q2/2025",
+          "retail_chains_count": 185,
+          "growth_rate": "25.0%",
+          "notes": "Nhấn mạnh quy mô bùng nổ, nhưng 70% là kho logistics cảng biển và thương mại điện tử xuất nhập khẩu."
+        }
+      ],
+      "data_issues": [
+        "Báo cáo nhấn mạnh quy mô tổng thể kho bãi (Logistics Hub) nhưng tỷ lệ chuỗi bán lẻ thuần túy chỉ chiếm 30%",
+        "Khách hàng đòi hỏi kết nối hệ thống cảng Đình Vũ và ICD chuyên dụng"
+      ],
+      "competitors": [
+        { "name": "Cảng Hải Phòng Logistics Solutions", "market_share": "45%", "pricing": "Được trợ giá", "weakness": "Khóa cứng khách hàng trong hệ sinh thái cảng biển" },
+        { "name": "Đối thủ Phương Bắc WMS", "market_share": "30%", "pricing": "Giảm giá 40%", "weakness": "Đang cạnh tranh phá giá quyết liệt tại khu vực Duyên Hải Bắc Bộ" }
+      ],
+      "leads": [
+        { "id": "L12", "name": "Chuỗi Bán lẻ Đồ gia dụng Cảng Xanh (12 cửa hàng)", "features_needed": ["Quản lý vị trí bin", "Đồng bộ POS"], "onsite_requirement": "Hỗ trợ bay ra on-site 3 ngày", "status": "Khả thi nhưng quy mô nhỏ" },
+        { "id": "L13", "name": "Kho Ngoại quan Tân Cảng Hải Phòng", "features_needed": ["Quản lý container, EDI hải quan"], "onsite_requirement": "Trực tại chỗ 24/7", "status": "Lệch sản phẩm & Vượt năng lực on-site" },
+        { "id": "L14", "name": "Tập đoàn Phân phối Duyên Hải", "features_needed": ["WMS + ERP công nghiệp"], "onsite_requirement": "Đội triển khai tối thiểu 10 người", "status": "Vượt quy mô đội triển khai 5 người" }
+      ]
+    }
+  ]
+}

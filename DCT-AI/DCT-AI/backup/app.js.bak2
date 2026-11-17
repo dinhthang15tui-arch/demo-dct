@@ -1,0 +1,1816 @@
+// DCT AI - Market Intelligence Agent
+// Integrated Processing Hub, Web Overview Landing, Floating Dock, Aurora Pulse, Dark Mode, Interactive Chatbot Glow & Analytics Dashboard
+
+let hasData = false;
+let hasAnalyzed = false;
+let isPulseActive = true;
+let isDarkMode = false;
+let isSidebarOpen = true;
+
+const territoryDataset = [
+  {
+    id: "T1",
+    rank: "01",
+    name: "Địa bàn A",
+    fullName: "Địa bàn A: Bình Dương & Đông Nam Bộ",
+    score: 92.5,
+    demand: "95%",
+    fit: "93%",
+    capacity: "85%",
+    rankLabel: "TOP 1 ✦",
+    rankClass: "first",
+    cleanSize: "227 chuỗi thực tế",
+    details: "Cách trụ sở TP.HCM 45km (1.2h di chuyển). Đội 5 kỹ sư hỗ trợ trực tiếp trong ngày thuận tiện, đảm bảo 100% SLA khi go-live. Độ khớp tính năng WMS đạt 93% với 35 siêu thị mini và chuỗi nhà thuốc. Đã khử 18 chuỗi trùng lặp giữa AVR và Sở Công Thương."
+  },
+  {
+    id: "T2",
+    rank: "02",
+    name: "Địa bàn B",
+    fullName: "Địa bàn B: Đà Nẵng & Miền Trung",
+    score: 85.2,
+    demand: "88%",
+    fit: "85%",
+    capacity: "82%",
+    rankLabel: "TOP 2 ✦",
+    rankClass: "second",
+    cleanSize: "160 chuỗi thực tế",
+    details: "Tăng trưởng bán lẻ du lịch 22%/năm, đối thủ tại chỗ còn dùng desktop offline lỗi thời. Có đường bay thẳng 1.5h, áp dụng mô hình đào tạo từ xa kết hợp 3 ngày on-site khi go-live vừa vặn sức chứa 1 đội 5 người. Đã loại bỏ 160 bản ghi lặp do Tạp chí Logistics copy từ VCCI."
+  },
+  {
+    id: "T3",
+    rank: "03",
+    name: "Địa bàn C",
+    fullName: "Địa bàn C: Cần Thơ & ĐBSCL",
+    score: 72.1,
+    demand: "76%",
+    fit: "70%",
+    capacity: "68%",
+    rankLabel: "Cần xem xét",
+    rankClass: "neutral",
+    cleanSize: "75 chuỗi thực tế",
+    details: "Báo cáo cũ 2023 bị thổi phồng bởi 180 hộ cá thể. Nhu cầu thực tế chủ yếu là kho lạnh âm sâu (-25°C) nông thủy sản, lệch tính năng WMS bán lẻ. Khách hàng đòi trực kỹ thuật on-site 24/7 trong 3 tuần đầu, sẽ làm kiệt sức đội 5 người và phá vỡ SLA khách hàng hiện hữu."
+  },
+  {
+    id: "T4",
+    rank: "04",
+    name: "Địa bàn D",
+    fullName: "Địa bàn D: Hải Phòng & Duyên Hải Bắc Bộ",
+    score: 61.7,
+    demand: "65%",
+    fit: "60%",
+    capacity: "58%",
+    rankLabel: "Thấp hơn",
+    rankClass: "neutral",
+    cleanSize: "55 chuỗi bán lẻ",
+    details: "70% doanh nghiệp là kho cảng biển/container ngoại quan (lệch WMS bán lẻ), đối thủ địa phương đang phá giá 40%. Cự ly 1.750km phát sinh chi phí vé máy bay và lưu trú quá đắt đỏ cho 1 đợt mở rộng duy nhất."
+  }
+];
+
+// Khởi tạo views & navigation
+const navItems = document.querySelectorAll('.nav-item');
+const views = document.querySelectorAll('.view');
+const pageTitle = document.getElementById('page-title');
+const toast = document.getElementById('toast');
+
+const titles = {
+  overview: 'Giới thiệu hệ thống',
+  input: 'Xử lý & Khởi chạy',
+  analysis: 'Phân tích thị trường',
+  compare: 'So sánh kết quả',
+  reports: 'Báo cáo kết quả',
+  logs: 'Nhật ký Agent'
+};
+
+function switchView(viewName) {
+  navItems.forEach(x => {
+    if (x.dataset.view === viewName) {
+      x.classList.add('active');
+    } else {
+      x.classList.remove('active');
+    }
+  });
+
+  views.forEach(v => {
+    v.classList.toggle('active', v.id === viewName);
+  });
+
+  if (pageTitle) pageTitle.textContent = titles[viewName] || 'Hệ thống';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Đóng dock menu nếu đang mở
+  const dock = document.getElementById('floating-dock');
+  if (dock) dock.classList.remove('open');
+
+  // Cập nhật trạng thái hiển thị của màn hình Báo cáo kết quả
+  if (viewName === 'reports') {
+    updateReportsViewState();
+  }
+}
+
+function updateReportsViewState() {
+  const emptyState = document.getElementById('reports-empty-state');
+  const resultsContainer = document.getElementById('reports-results-container');
+  if (!emptyState || !resultsContainer) return;
+
+  if (hasData || hasAnalyzed) {
+    emptyState.style.display = 'none';
+    resultsContainer.style.display = 'block';
+    setTimeout(renderAnalyticsCharts, 120);
+  } else {
+    emptyState.style.display = 'block';
+    resultsContainer.style.display = 'none';
+  }
+}
+
+navItems.forEach(btn => {
+  btn.addEventListener('click', () => {
+    switchView(btn.dataset.view);
+  });
+});
+
+function notify(msg) {
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+// ================= 1. KÉO THẢ TỆP VÀO TRUNG TÂM XỬ LÝ =================
+
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+if (dropZone) {
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('drag-over');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove('drag-over');
+    }, false);
+  });
+
+  dropZone.addEventListener('drop', e => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleUploadedFiles(files);
+  }, false);
+}
+
+if (fileInput) {
+  fileInput.addEventListener('change', () => {
+    handleUploadedFiles(fileInput.files);
+  });
+}
+
+function handleUploadedFiles(files) {
+  const fileArray = [...files];
+  if (fileArray.length === 0) return;
+
+  const fileList = document.getElementById('file-list');
+  fileList.innerHTML = fileArray.map(f => {
+    let badge = '📄 TỆP KHÁC';
+    let badgeClass = 'badge-word';
+    const lowerName = f.name.toLowerCase();
+
+    if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls') || lowerName.endsWith('.csv')) {
+      badge = '📊 EXCEL';
+      badgeClass = 'badge-excel';
+    } else if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) {
+      badge = '📄 WORD';
+      badgeClass = 'badge-word';
+    } else if (lowerName.endsWith('.pptx') || lowerName.endsWith('.ppt')) {
+      badge = '📑 POWERPOINT';
+      badgeClass = 'badge-ppt';
+    }
+
+    return `
+      <div style="padding:10px; border-bottom:1px solid #e5edf7; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="file-type-badge ${badgeClass}">${badge}</span>
+          <strong style="margin-left:6px; color:var(--text-main);">${f.name}</strong>
+          <small style="color:var(--text-muted); margin-left:8px;">(${(f.size / 1024).toFixed(1)} KB)</small>
+        </div>
+        <span style="font-size:10px; color:#10b981; font-weight:700;">✓ Đã tiếp nhận</span>
+      </div>
+    `;
+  }).join('');
+
+  activateDataState(fileArray.length);
+  notify(`Đã nạp thành công ${fileArray.length} tệp! Bấm "Khởi Chạy AI Agent" để xử lý.`);
+}
+
+const demoBtn = document.getElementById('demo-data');
+if (demoBtn) {
+  demoBtn.onclick = () => {
+    const fileList = document.getElementById('file-list');
+    fileList.innerHTML = `
+      <div style="padding:10px; border-bottom:1px solid #e5edf7; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="file-type-badge badge-excel">📊 EXCEL</span>
+          <strong style="margin-left:6px; color:var(--text-main);">DuLieu_KhaoSat_ChuoiBanLe_4DiaBan.xlsx</strong>
+          <small style="color:var(--text-muted); margin-left:8px;">(245 chuỗi, doanh thu, phân bổ kho)</small>
+        </div>
+        <span style="font-size:10px; color:#10b981; font-weight:700;">✓ Sẵn sàng</span>
+      </div>
+      <div style="padding:10px; border-bottom:1px solid #e5edf7; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="file-type-badge badge-excel">📊 EXCEL</span>
+          <strong style="margin-left:6px; color:var(--text-main);">DanhSach_KhachHang_TiemNang_Leads.xlsx</strong>
+          <small style="color:var(--text-muted); margin-left:8px;">(32 leads, nhu cầu on-site SLA)</small>
+        </div>
+        <span style="font-size:10px; color:#10b981; font-weight:700;">✓ Sẵn sàng</span>
+      </div>
+      <div style="padding:10px; border-bottom:1px solid #e5edf7; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="file-type-badge badge-word">📄 WORD</span>
+          <strong style="margin-left:6px; color:var(--text-main);">BaoCao_NghienCuu_ThiTruong_SoCongThuong_VCCI.docx</strong>
+          <small style="color:var(--text-muted); margin-left:8px;">(Tài liệu nghiên cứu địa bàn)</small>
+        </div>
+        <span style="font-size:10px; color:#10b981; font-weight:700;">✓ Sẵn sàng</span>
+      </div>
+      <div style="padding:10px; border-bottom:1px solid #e5edf7; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="file-type-badge badge-word">📄 WORD</span>
+          <strong style="margin-left:6px; color:var(--text-main);">HoSo_DoiThu_Va_NangLuc_DoiTrienKhai.docx</strong>
+          <small style="color:var(--text-muted); margin-left:8px;">(Đối thủ SmartLog, Misa & 5 kỹ sư)</small>
+        </div>
+        <span style="font-size:10px; color:#10b981; font-weight:700;">✓ Sẵn sàng</span>
+      </div>
+      <div style="padding:10px; border-bottom:1px solid #e5edf7; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="file-type-badge badge-ppt">📑 POWERPOINT</span>
+          <strong style="margin-left:6px; color:var(--text-main);">ChienLuoc_MoRong_ThiTruong_2026.pptx</strong>
+          <small style="color:var(--text-muted); margin-left:8px;">(Định hướng mở rộng 2 địa bàn của BGĐ)</small>
+        </div>
+        <span style="font-size:10px; color:#10b981; font-weight:700;">✓ Sẵn sàng</span>
+      </div>
+    `;
+
+    activateDataState(5);
+    notify('Đã nạp bộ 5 tệp Excel, Word, PPT mẫu của Hưng Phát WMS!');
+  };
+}
+
+function activateDataState(fileCount) {
+  hasData = true;
+
+  document.getElementById('stat-territories-count').textContent = '04';
+  document.getElementById('stat-territories-desc').textContent = '4 khu vực đầu vào đã nạp tệp';
+  document.getElementById('processed-count').textContent = `${fileCount} / 18`;
+  document.getElementById('processed-desc').textContent = `Đã nạp ${fileCount} tệp Excel, Word, PPT`;
+  document.getElementById('system-readiness-label').textContent = 'Dữ liệu sẵn sàng xử lý';
+
+  const runBtn = document.getElementById('run-agent');
+  runBtn.disabled = false;
+  runBtn.style.opacity = '1';
+  runBtn.style.cursor = 'pointer';
+
+  document.getElementById('pipeline-status').textContent = 'Sẵn sàng khởi chạy';
+  document.getElementById('pipeline-status').className = 'status success';
+  document.getElementById('pipeline-info-msg').innerHTML = '<i class="pulse" style="background:#10b981;"></i> Đã tiếp nhận tệp · Bấm nút khởi chạy bên dưới!';
+
+  [1, 2, 3, 4].forEach(i => {
+    const stepEl = document.getElementById(`step-${i}`);
+    if (stepEl) stepEl.classList.remove('waiting');
+  });
+
+  appendLog('INGESTION', `Tiếp nhận ${fileCount} tệp dữ liệu vào Hub. Nút khởi chạy đã mở khóa.`);
+  updateReportsViewState();
+}
+
+// ================= 2. KHỞI CHẠY QUY TRÌNH & XUẤT KẾT QUẢ TÍCH HỢP TẠI ĐÂY =================
+
+const runBtn = document.getElementById('run-agent');
+if (runBtn) {
+  runBtn.addEventListener('click', async e => {
+    if (!hasData) {
+      notify('Bạn chưa thả dữ liệu vào! Hãy kéo thả tệp Excel, Word, PPT trước.');
+      return;
+    }
+
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang phân tích...';
+
+    const pipelineStatus = document.getElementById('pipeline-status');
+    if (pipelineStatus) pipelineStatus.textContent = '● Đang phân tích các task...';
+
+    const fill = document.getElementById('progress-fill');
+    const number = document.getElementById('progress-number');
+    const progressDesc = document.getElementById('progress-desc');
+
+    const steps = [
+      {
+        stepNum: 1,
+        name: 'Data Collection & Cleaning',
+        desc: 'Đã khử 160 bản ghi lặp ở Đà Nẵng, bóc tách 180 hộ cá thể Cần Thơ.',
+        accordionContent: `
+          <div style="background:rgba(16, 185, 129, 0.08); padding:14px; border-radius:10px; border-left:4px solid #10b981;">
+            <b style="color:var(--text-main); font-size:13px;">KẾT QUẢ TASK 1 (LÀM SẠCH DỮ LIỆU ĐẦU VÀO):</b>
+            <ul style="margin:8px 0 0; padding-left:18px; color:var(--text-muted); line-height:1.7;">
+              <li><b>Đà Nẵng:</b> Phát hiện Tạp chí Logistics sao chép 100% từ VCCI Đà Nẵng. Đã loại bỏ 160 bản ghi lặp, chuẩn hóa về <strong>160 chuỗi thực tế</strong>.</li>
+              <li><b>Cần Thơ:</b> Bóc tách 180 hộ cá thể đơn lẻ ra khỏi số liệu cũ 2023. Quy mô chuỗi thực tế chỉ còn <strong>75 doanh nghiệp</strong>.</li>
+              <li><b>Bình Dương:</b> Trừ 18 chuỗi trùng lặp giữa AVR và Sở Công Thương, đồng bộ về Q2/2025 với <strong>227 chuỗi thực tế</strong>.</li>
+              <li><b>Hải Phòng:</b> Bóc tách 70% kho logistics cảng biển, chuỗi bán lẻ thuần túy chỉ có <strong>55 đơn vị</strong>.</li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        stepNum: 2,
+        name: 'Market Fit Analysis',
+        desc: 'Đo lường Fit-score: Bình Dương 93%, Đà Nẵng 85%, Cần Thơ lệch kho lạnh (-25°C).',
+        accordionContent: `
+          <div style="background:rgba(40, 121, 238, 0.08); padding:14px; border-radius:10px; border-left:4px solid #2879ee;">
+            <b style="color:var(--text-main); font-size:13px;">KẾT QUẢ TASK 2 (ĐỐI CHIẾU NHU CẦU & SẢN PHẨM WMS):</b>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+              <div style="background:rgba(16, 185, 129, 0.12); padding:10px; border-radius:8px;">
+                <b style="color:#059669;">Bình Dương: 93% Fit</b><br>
+                <small style="color:var(--text-muted);">Khớp quét barcode 2D, quản lý HSD FEFO/FIFO cho 35 siêu thị mini và chuỗi nhà thuốc.</small>
+              </div>
+              <div style="background:rgba(40, 121, 238, 0.12); padding:10px; border-radius:8px;">
+                <b style="color:#2563eb;">Đà Nẵng: 85% Fit</b><br>
+                <small style="color:var(--text-muted);">Khớp nghiệp vụ chuỗi thời trang, quà tặng du lịch, cross-docking điều chuyển hàng.</small>
+              </div>
+              <div style="background:rgba(239, 68, 68, 0.12); padding:10px; border-radius:8px;">
+                <b style="color:#dc2626;">Cần Thơ: 70% Fit (LỆCH)</b><br>
+                <small style="color:var(--text-muted);">Đòi hỏi kho lạnh âm sâu -25°C cho thủy hải sản — ngoài danh mục WMS Hưng Phát.</small>
+              </div>
+              <div style="background:rgba(245, 158, 11, 0.12); padding:10px; border-radius:8px;">
+                <b style="color:#d97706;">Hải Phòng: 60% Fit (LỆCH)</b><br>
+                <small style="color:var(--text-muted);">Đòi hỏi bãi container và kho ngoại quan cảng biển — không thuộc WMS bán lẻ.</small>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        stepNum: 3,
+        name: 'Opportunity Evaluation',
+        desc: 'Thẩm định On-site SLA (đội 5 người). Đánh giá Cần Thơ quá tải trực 24/7.',
+        accordionContent: `
+          <div style="background:rgba(245, 158, 11, 0.08); padding:14px; border-radius:10px; border-left:4px solid #f59e0b;">
+            <b style="color:var(--text-main); font-size:13px;">KẾT QUẢ TASK 3 (THẨM ĐỊNH NĂNG LỰC TRIỂN KHAI ON-SITE SLA):</b>
+            <ul style="margin:8px 0 0; padding-left:18px; color:var(--text-muted); line-height:1.7;">
+              <li><b>Bình Dương (85% điểm năng lực):</b> Cách 45km, 100% khả thi SLA, đội 5 kỹ sư di chuyển trong ngày thuận lợi.</li>
+              <li><b>Đà Nẵng (82% điểm năng lực):</b> Bay 1.5h, mô hình đào tạo từ xa + 3 ngày on-site khi go-live phù hợp sức chứa.</li>
+              <li><b>Cần Thơ (68% điểm - BÁO ĐỘNG ĐỎ):</b> Khách hàng đòi trực kỹ thuật 24/7 on-site trong 3 tuần đầu. 1 team 5 người sẽ kiệt sức và phá vỡ SLA khách hàng hiện hữu.</li>
+              <li><b>Hải Phòng (58% điểm):</b> Cự ly 1.750km, chi phí máy bay/lưu trú đắt đỏ, đối thủ đang phá giá 40%.</li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        stepNum: 4,
+        name: 'Human Review Ready',
+        desc: 'Hoàn tất hồ sơ kiểm toán. Đề xuất Top 2: Bình Dương (92.5) & Đà Nẵng (85.2).',
+        accordionContent: `
+          <div style="background:rgba(16, 185, 129, 0.1); padding:14px; border-radius:10px; border:1px solid rgba(16, 185, 129, 0.3);">
+            <b style="color:#059669; font-size:13px;">KẾT QUẢ TASK 4 (ĐỀ XUẤT CHÍNH THỨC TRÌNH BAN GIÁM ĐỐC):</b>
+            <p style="margin:6px 0 0; color:var(--text-main); line-height:1.6;">
+              Lựa chọn <strong>Địa bàn A (Bình Dương - 92.5 điểm)</strong> và <strong>Địa bàn B (Đà Nẵng - 85.2 điểm)</strong> để tiến hành khảo sát khách hàng thực tế.<br>
+              Đã loại trừ Cần Thơ và Hải Phòng nhằm bảo toàn nguồn lực 1 đội 5 kỹ sư và chất lượng dịch vụ của công ty.
+            </p>
+          </div>
+        `
+      }
+    ];
+
+    for (const [i, s] of steps.entries()) {
+      await new Promise(r => setTimeout(r, 600));
+      const p = (i + 1) * 25;
+      if (fill) fill.style.width = p + '%';
+      if (number) number.textContent = p + '%';
+      if (progressDesc) progressDesc.textContent = `Đang xử lý Task ${i + 1}/4...`;
+
+      [1, 2, 3, 4].forEach(idx => {
+        const stepEl = document.getElementById(`step-${idx}`);
+        if (stepEl) {
+          stepEl.classList.toggle('active-step', idx === (i + 1));
+          if (idx <= (i + 1)) {
+            stepEl.querySelector('.step-check').textContent = '✓';
+            stepEl.querySelector('.step-check').style.background = '#18b777';
+          }
+        }
+      });
+
+      const accordionBox = document.getElementById(`accordion-task-${s.stepNum}`);
+      const taskContent = document.getElementById(`task-${s.stepNum}-content-text`);
+      if (taskContent) taskContent.innerHTML = s.accordionContent;
+      if (accordionBox) accordionBox.classList.add('expanded');
+
+      appendLog('INFO', `${s.name} — ${s.desc}`);
+    }
+
+    hasAnalyzed = true;
+    if (pipelineStatus) pipelineStatus.textContent = '● Hoàn thành';
+    if (progressDesc) progressDesc.textContent = 'Đã hoàn thành 100%';
+
+    document.getElementById('stat-proposals-count').textContent = '02';
+    document.getElementById('stat-proposals-desc').textContent = 'Top 1: Bình Dương, Top 2: Đà Nẵng';
+
+    // Hiển thị bảng So sánh 4 địa bàn và kết quả đề xuất Top 2 ngay tại view input
+    document.getElementById('table-empty-state').style.display = 'none';
+    document.getElementById('table-wrap').style.display = 'block';
+    renderCompareTable(territoryDataset);
+    renderFullCompareTable(territoryDataset);
+
+    document.getElementById('rec-empty-state').style.display = 'none';
+    document.getElementById('rec-filled-content').style.display = 'block';
+    document.getElementById('rec-badge').textContent = 'TOP 2';
+
+    // Cập nhật màn hình Báo cáo kết quả
+    document.getElementById('report-rec-title').textContent = '02 (Bình Dương & Đà Nẵng)';
+    document.getElementById('report-status-badge').textContent = 'ĐÃ SẴN SÀNG';
+    document.getElementById('report-status-badge').style.color = '#18b777';
+    document.getElementById('report-body-text').innerHTML = `
+      Qua 10 bước chuẩn hóa từ dữ liệu thị trường, phản hồi khách hàng và giới hạn nguồn lực của <strong>01 đội ngũ triển khai (05 kỹ sư)</strong>:
+      <br>• <strong>Địa bàn A (Bình Dương - 92.5 điểm):</strong> Độ khớp WMS 93%, cự ly 45km đảm bảo 100% SLA hỗ trợ kỹ thuật, chi phí triển khai tối ưu.
+      <br>• <strong>Địa bàn B (Đà Nẵng - 85.2 điểm):</strong> Thị trường bán lẻ du lịch tăng trưởng 22%, đối thủ công nghệ cũ, áp dụng mô hình Hybrid On-site 3 ngày go-live phù hợp sức chứa.
+      <br>• <strong>Loại trừ Cần Thơ & Hải Phòng:</strong> Tránh rủi ro khách hàng đòi trực 24/7 on-site và phân khúc lệch kho lạnh/cảng container.
+    `;
+
+    // Cập nhật tab Phân tích
+    document.getElementById('skill-1-status').textContent = 'Hoàn tất';
+    document.getElementById('skill-1-status').className = 'status success';
+    document.getElementById('skill-2-status').textContent = 'Hoàn tất';
+    document.getElementById('skill-2-status').className = 'status success';
+    document.getElementById('skill-3-status').textContent = 'Hoàn tất';
+    document.getElementById('skill-3-status').className = 'status success';
+
+    // Cập nhật biểu đồ nếu đang ở màn hình báo cáo hoặc khi mở ra
+    updateReportsViewState();
+
+    btn.disabled = false;
+    btn.textContent = '✓ Khởi Chạy Lại AI Agent';
+    notify('Đã hoàn tất xử lý! Bảng số liệu, biểu đồ phân tích và kết quả đề xuất Top 2 đã xuất hiện.');
+  });
+}
+
+// ================= 3. THANH TÁC VỤ NỔI TỰ ĐỘNG ĐÓNG MỞ THEO CHUỘT (FLOATING HOVER DOCK) =================
+
+const dockContainer = document.getElementById('floating-dock');
+const dockToggleBtn = document.getElementById('dock-toggle-btn');
+const dockBtnIcon = document.getElementById('dock-btn-icon');
+let dockHoverTimeout = null;
+
+if (dockContainer) {
+  // Rê chuột vào thì mở thanh tác vụ
+  dockContainer.addEventListener('mouseenter', () => {
+    if (dockHoverTimeout) clearTimeout(dockHoverTimeout);
+    dockContainer.classList.add('open');
+    if (dockBtnIcon) dockBtnIcon.textContent = '✕';
+  });
+
+  // Di chuột ra ngoài thì tự động thu gọn thanh tác vụ
+  dockContainer.addEventListener('mouseleave', () => {
+    dockHoverTimeout = setTimeout(() => {
+      dockContainer.classList.remove('open');
+      if (dockBtnIcon) dockBtnIcon.textContent = '⚡';
+    }, 250);
+  });
+}
+
+if (dockToggleBtn) {
+  dockToggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dockContainer.classList.toggle('open');
+    if (dockContainer.classList.contains('open')) {
+      dockBtnIcon.textContent = '✕';
+    } else {
+      dockBtnIcon.textContent = '⚡';
+    }
+  });
+}
+
+// Tự động thu gọn thanh tác vụ khi click ra ngoài
+document.addEventListener('click', e => {
+  if (dockContainer && !dockContainer.contains(e.target)) {
+    dockContainer.classList.remove('open');
+    if (dockBtnIcon) dockBtnIcon.textContent = '⚡';
+  }
+});
+
+// Các hàm tiện ích cho Thanh tác vụ nhanh
+function quickRunAgent() {
+  switchView('input');
+  if (dockContainer) dockContainer.classList.remove('open');
+  const runBtn = document.getElementById('run-agent');
+  if (runBtn && !runBtn.disabled) {
+    runBtn.click();
+  } else {
+    notify('Vui lòng chọn hoặc kéo thả tệp trước khi khởi chạy AI Agent!');
+  }
+}
+
+function toggleThemeMode() {
+  if (dockContainer) dockContainer.classList.remove('open');
+  const themeBtn = document.getElementById('theme-mode-toggle');
+  if (themeBtn) themeBtn.click();
+}
+
+function togglePulseMode() {
+  if (dockContainer) dockContainer.classList.remove('open');
+  const pulseBtn = document.getElementById('toggle-pulse-btn');
+  if (pulseBtn) pulseBtn.click();
+}
+
+document.querySelectorAll('.dock-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (dockContainer) dockContainer.classList.remove('open');
+    if (dockBtnIcon) dockBtnIcon.textContent = '⚡';
+  });
+});
+
+// Cuộn lên đầu trang
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ================= SIDEBAR HOVER ĐÓNG MỞ THEO CHUỘT & GHIM MỞ =================
+let isSidebarPinned = false; // Mặc định ở chế độ Đóng mở theo chuột (Auto-hover)
+let sidebarHoverTimeout = null;
+
+function initSidebarHoverBehavior() {
+  const sidebar = document.getElementById('sidebar');
+  const appShell = document.getElementById('app-shell');
+  const toggleBtn = document.getElementById('toggle-sidebar-btn');
+
+  if (!sidebar || !appShell) return;
+
+  // Rê chuột vào Sidebar: Tự động bung mở 250px
+  sidebar.addEventListener('mouseenter', () => {
+    if (sidebarHoverTimeout) clearTimeout(sidebarHoverTimeout);
+    if (!isSidebarPinned) {
+      sidebar.classList.add('is-hovered');
+    }
+  });
+
+  // Rời chuột khỏi Sidebar: Tự động thu gọn về thanh ray 68px (có grace delay 180ms để không giật lag)
+  sidebar.addEventListener('mouseleave', () => {
+    if (isSidebarPinned) return;
+    sidebarHoverTimeout = setTimeout(() => {
+      sidebar.classList.remove('is-hovered');
+    }, 180);
+  });
+
+  // Nút chuyển đổi trên Topbar: Chuyển giữa chế độ Đóng mở theo chuột và Ghim mở cố định
+  if (toggleBtn) {
+    toggleBtn.onclick = toggleSidebarMode;
+  }
+}
+
+function toggleSidebarMode() {
+  const appShell = document.getElementById('app-shell');
+  const sidebarIcon = document.getElementById('sidebar-icon');
+  const sidebarBtnLabel = document.getElementById('sidebar-btn-label');
+  const sidebar = document.getElementById('sidebar');
+
+  isSidebarPinned = !isSidebarPinned;
+
+  if (isSidebarPinned) {
+    appShell.classList.add('sidebar-pinned');
+    if (sidebar) sidebar.classList.remove('is-hovered');
+    if (sidebarIcon) sidebarIcon.textContent = '📌';
+    if (sidebarBtnLabel) sidebarBtnLabel.textContent = 'Đang ghim';
+    notify('Đã GHIM mở cố định Sidebar.');
+  } else {
+    appShell.classList.remove('sidebar-pinned');
+    if (sidebarIcon) sidebarIcon.textContent = '↔️';
+    if (sidebarBtnLabel) sidebarBtnLabel.textContent = 'Đóng mở theo chuột';
+    notify('Đã chuyển Sidebar sang chế độ TỰ ĐỘNG ĐÓNG/MỞ THEO CHUỘT.');
+  }
+}
+
+// ================= 4. ĐÓNG / MỞ CÁC TASK (ACCORDION TOGGLE) =================
+
+function toggleTaskAccordion(taskNumber) {
+  const accordion = document.getElementById(`accordion-task-${taskNumber}`);
+  if (accordion) {
+    accordion.classList.toggle('expanded');
+  }
+}
+
+let allExpanded = false;
+function toggleAllTasks() {
+  allExpanded = !allExpanded;
+  [1, 2, 3, 4].forEach(i => {
+    const acc = document.getElementById(`accordion-task-${i}`);
+    if (acc) {
+      if (allExpanded) acc.classList.add('expanded');
+      else acc.classList.remove('expanded');
+    }
+  });
+}
+
+// ================= 5. BẬT/TẮT NỀN NHẤP NHÁY SAO BĂNG (METEOR SHOWER & STARFIELD TOGGLE) =================
+
+const togglePulseBtn = document.getElementById('toggle-pulse-btn');
+if (togglePulseBtn) {
+  togglePulseBtn.addEventListener('click', () => {
+    isPulseActive = !isPulseActive;
+    const ambWrapper = document.getElementById('ambient-wrapper');
+    const pulseIcon = document.getElementById('pulse-icon');
+    const pulseLabel = document.getElementById('pulse-label');
+
+    if (isPulseActive) {
+      if (ambWrapper) ambWrapper.classList.add('ambient-active');
+      if (pulseIcon) pulseIcon.textContent = '🌠';
+      if (pulseLabel) pulseLabel.textContent = 'Nền: Sao băng';
+      notify('Đã BẬT hiệu ứng nhấp nháy sao băng & tinh tú.');
+    } else {
+      if (ambWrapper) ambWrapper.classList.remove('ambient-active');
+      if (pulseIcon) pulseIcon.textContent = '⚪';
+      if (pulseLabel) pulseLabel.textContent = 'Nền: Tĩnh';
+      notify('Đã TẮT hiệu ứng nhấp nháy sao băng.');
+    }
+  });
+}
+
+// ================= 6. CHẾ ĐỘ SÁNG / TỐI (LIGHT / DARK MODE) =================
+
+const themeModeToggle = document.getElementById('theme-mode-toggle');
+if (themeModeToggle) {
+  themeModeToggle.addEventListener('click', () => {
+    isDarkMode = !isDarkMode;
+    const modeIcon = document.getElementById('mode-icon');
+    const modeLabel = document.getElementById('mode-label');
+
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode');
+      if (modeIcon) modeIcon.textContent = '☀️';
+      if (modeLabel) modeLabel.textContent = 'Chế độ Sáng';
+      notify('Đã chuyển sang giao diện Tối (Dark Mode).');
+    } else {
+      document.body.classList.remove('dark-mode');
+      if (modeIcon) modeIcon.textContent = '🌙';
+      if (modeLabel) modeLabel.textContent = 'Chế độ Tối';
+      notify('Đã chuyển sang giao diện Sáng (Light Mode).');
+    }
+
+    // Cập nhật biểu đồ theo theme màu mới
+    renderAnalyticsCharts();
+  });
+}
+
+// ================= 7. THANH CHỈNH MÀU SẮC (THEME COLOR PICKER) =================
+
+const themeThemes = {
+  blue: {
+    primary: '#2879ee',
+    primaryHover: '#1664d9',
+    hue: '215deg',
+    gradient: 'linear-gradient(110deg, #071a3b 0%, #123b70 52%, #0d6ca1 100%)'
+  },
+  green: {
+    primary: '#10b981',
+    primaryHover: '#059669',
+    hue: '155deg',
+    gradient: 'linear-gradient(110deg, #062c1d 0%, #0d5c3d 52%, #0f8658 100%)'
+  },
+  purple: {
+    primary: '#8b5cf6',
+    primaryHover: '#7c3aed',
+    hue: '260deg',
+    gradient: 'linear-gradient(110deg, #1e1035 0%, #3e1e6d 52%, #5b289d 100%)'
+  },
+  amber: {
+    primary: '#f59e0b',
+    primaryHover: '#d97706',
+    hue: '35deg',
+    gradient: 'linear-gradient(110deg, #2b1704 0%, #5e350c 52%, #854d0e 100%)'
+  },
+  crimson: {
+    primary: '#e11d48',
+    primaryHover: '#be123c',
+    hue: '345deg',
+    gradient: 'linear-gradient(110deg, #2c0b13 0%, #5e1628 52%, #881337 100%)'
+  }
+};
+
+function applyColorTheme(themeKey) {
+  const t = themeThemes[themeKey] || themeThemes.blue;
+  document.documentElement.style.setProperty('--blue', t.primary);
+  document.documentElement.style.setProperty('--theme-primary', t.primary);
+  document.documentElement.style.setProperty('--theme-primary-hover', t.primaryHover);
+  document.documentElement.style.setProperty('--theme-hue', t.hue);
+
+  const hero = document.getElementById('hero-banner');
+  if (hero) hero.style.background = t.gradient;
+
+  document.querySelectorAll('.color-dot').forEach(d => {
+    d.classList.toggle('active', d.dataset.color === themeKey);
+  });
+
+  notify(`Đã đổi màu giao diện: ${themeKey.toUpperCase()}`);
+  renderAnalyticsCharts();
+}
+
+document.querySelectorAll('.color-dot').forEach(d => {
+  d.addEventListener('click', () => {
+    applyColorTheme(d.dataset.color);
+  });
+});
+
+const hueSlider = document.getElementById('theme-hue-slider');
+if (hueSlider) {
+  hueSlider.addEventListener('input', e => {
+    const hue = e.target.value;
+    const dynamicPrimary = `hsl(${hue}, 85%, 55%)`;
+    const dynamicHover = `hsl(${hue}, 85%, 45%)`;
+    const dynamicGradient = `linear-gradient(110deg, hsl(${hue}, 80%, 12%) 0%, hsl(${hue}, 70%, 25%) 52%, hsl(${hue}, 65%, 35%) 100%)`;
+
+    document.documentElement.style.setProperty('--blue', dynamicPrimary);
+    document.documentElement.style.setProperty('--theme-primary', dynamicPrimary);
+    document.documentElement.style.setProperty('--theme-primary-hover', dynamicHover);
+    document.documentElement.style.setProperty('--theme-hue', `${hue}deg`);
+
+    const hero = document.getElementById('hero-banner');
+    if (hero) hero.style.background = dynamicGradient;
+
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  });
+}
+
+// ================= 8. TƯƠNG TÁC PHÁT SÁNG CÁC TASK THEO CHATBOT =================
+
+function highlightTask(taskNum) {
+  unhighlightTasks();
+  const step = document.getElementById(`step-${taskNum}`);
+  const acc = document.getElementById(`accordion-task-${taskNum}`);
+  if (step) step.classList.add('task-glow-active');
+  if (acc) acc.classList.add('task-glow-active');
+}
+
+function unhighlightTasks() {
+  document.querySelectorAll('.task-glow-active').forEach(el => {
+    el.classList.remove('task-glow-active');
+  });
+}
+
+function focusTask(taskNum) {
+  const acc = document.getElementById(`accordion-task-${taskNum}`);
+  if (acc) {
+    acc.classList.add('expanded');
+    acc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    highlightTask(taskNum);
+    setTimeout(unhighlightTasks, 2200);
+  }
+}
+
+function askCopilotQuestion(type) {
+  const box = document.getElementById('chatbot-response-box');
+  if (!box) return;
+
+  if (type === 'can_tho') {
+    highlightTask(3);
+    box.innerHTML = `
+      <strong>Trợ lý DCT AI:</strong> 
+      Cần Thơ bị loại trừ dựa trên kết quả đối chiếu tại 
+      <span class="task-badge-link" onmouseenter="highlightTask(2)" onmouseleave="unhighlightTasks()" onclick="focusTask(2)">[Task 2: Fit-score WMS]</span> và 
+      <span class="task-badge-link" onmouseenter="highlightTask(3)" onmouseleave="unhighlightTasks()" onclick="focusTask(3)">[Task 3: Thẩm định On-site SLA]</span>:
+      <br>• <strong>Lệch tính năng sản phẩm cốt lõi:</strong> 80% nhu cầu tại đây là quản lý kho lạnh âm sâu (-25°C) phục vụ thủy hải sản xuất khẩu, không khớp với giải pháp WMS bán lẻ hiện tại của Hưng Phát.
+      <br>• <strong>Nguy cơ quá tải nhân sự nghiêm trọng:</strong> Khách hàng đòi hỏi cử kỹ sư trực kỹ thuật tại chỗ (on-site) 24/7 trong 3 tuần đầu. Với duy nhất <strong>01 đội ngũ triển khai (05 kỹ sư)</strong>, nếu nhận Cần Thơ sẽ làm kiệt sức nhân sự và phá vỡ cam kết SLA với các khách hàng hiện hữu tại TP.HCM.
+    `;
+  } else if (type === 'da_nang') {
+    highlightTask(2);
+    box.innerHTML = `
+      <strong>Trợ lý DCT AI:</strong> 
+      Đà Nẵng được chọn làm <span class="task-badge-link" onmouseenter="highlightTask(4)" onmouseleave="unhighlightTasks()" onclick="focusTask(4)">[Top 2 Ưu tiên]</span> nhờ các ưu thế chiến lược:
+      <br>• <strong>Tăng trưởng bán lẻ ấn tượng:</strong> Tốc độ mở rộng chuỗi du lịch, đặc sản đạt 22%/năm; đối thủ địa phương chỉ dùng phần mềm kế toán hoặc ứng dụng desktop offline lỗi thời.
+      <br>• <strong>Độ khớp sản phẩm cao (85%):</strong> Khớp tính năng quản lý đa kho, cross-docking quà tặng và POS đồng bộ.
+      <br>• <strong>Mô hình triển khai khả thi cao:</strong> Có đường bay thẳng 1.5h từ TP.HCM. Hưng Phát áp dụng mô hình <em>Hybrid: Đào tạo cấu hình từ xa kết hợp cử 2 kỹ sư on-site 3 ngày go-live</em>, hoàn toàn vừa vặn năng lực đội ngũ 5 người.
+    `;
+  } else if (type === 'data_cleaning') {
+    highlightTask(1);
+    box.innerHTML = `
+      <strong>Trợ lý DCT AI:</strong> 
+      Tại <span class="task-badge-link" onmouseenter="highlightTask(1)" onmouseleave="unhighlightTasks()" onclick="focusTask(1)">[Task 1: Data Collection & Cleaning]</span>, Agent đã giải quyết triệt để các bất cập trong tài liệu thị trường:
+      <br>• <strong>Khử 160 bản ghi lặp ở Đà Nẵng:</strong> Phát hiện Tạp chí Logistics copy nguyên văn báo cáo của VCCI dẫn đến trùng lặp quy mô. Chuẩn hóa về <strong>160 chuỗi thực tế</strong>.
+      <br>• <strong>Bóc tách 180 hộ cá thể tại Cần Thơ:</strong> Báo cáo cũ 2023 tính cả sạp chợ truyền thống; sau khi lọc theo chuẩn chuỗi bán lẻ hiện đại (từ 3 điểm bán trở lên), thị trường chỉ còn <strong>75 doanh nghiệp</strong>.
+      <br>• <strong>Đồng bộ kỳ thống kê 2025:</strong> Quy chuẩn toàn bộ số liệu 4 địa bàn về cùng mốc đánh giá giúp so sánh công bằng, khách quan.
+    `;
+  } else if (type === 'proposal') {
+    highlightTask(4);
+    box.innerHTML = `
+      <strong>Trợ lý DCT AI:</strong> 
+      Luận điểm chính thức trình Ban Giám Đốc tại <span class="task-badge-link" onmouseenter="highlightTask(4)" onmouseleave="unhighlightTasks()" onclick="focusTask(4)">[Task 4: Human Review Ready]</span>:
+      <br>• <strong>Ưu tiên số 1: Bình Dương (92.5đ):</strong> Cự ly 45km, hỗ trợ kỹ thuật trong ngày, khớp 93% giải pháp WMS, chi phí thấp nhất và biên lợi nhuận cao nhất.
+      <br>• <strong>Ưu tiên số 2: Đà Nẵng (85.2đ):</strong> Điểm tựa mở rộng miền Trung, thị trường đang khát giải pháp cloud hiện đại, mô hình on-site gọn nhẹ không gây quá tải.
+      <br>• <strong>Tài liệu bàn giao đầy đủ:</strong> Bạn có thể bấm xuất ngay: 
+      <button class="btn-export-excel" style="padding:2px 8px; font-size:10px; margin:0 2px;" onclick="exportExcelDeliverable()">📊 Excel</button>
+      <button class="btn-export-word" style="padding:2px 8px; font-size:10px; margin:0 2px;" onclick="exportWordDeliverable()">📄 Word</button>
+      <button class="btn-export-ppt" style="padding:2px 8px; font-size:10px; margin:0 2px;" onclick="exportPptDeliverable()">📑 PowerPoint</button>
+    `;
+  }
+  notify('AI Copilot đã cập nhật câu trả lời phân tích!');
+}
+
+// ================= 9. RENDER BẢNG & MODAL =================
+
+function renderCompareTable(data) {
+  const tbody = document.getElementById('compare-tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = data.map(item => `
+    <tr onclick="openTerritoryModal('${item.id}')" title="Bấm để xem chi tiết ${item.name}">
+      <td>${item.rank}</td>
+      <td><b>${item.name}</b></td>
+      <td>
+        <b>${item.score.toFixed(1)}</b>
+        <span class="table-bar"><i style="width:${item.score}%"></i></span>
+      </td>
+      <td>${item.demand}</td>
+      <td>${item.fit}</td>
+      <td>${item.capacity}</td>
+      <td><span class="rank ${item.rankClass}">${item.rankLabel}</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderFullCompareTable(data) {
+  const tbody = document.getElementById('full-compare-tbody');
+  const note = document.getElementById('compare-empty-note');
+  if (!tbody) return;
+
+  if (note) note.style.display = 'none';
+  tbody.innerHTML = data.map(item => `
+    <tr style="${item.rankClass === 'first' || item.rankClass === 'second' ? 'background:rgba(16, 185, 129, 0.1); font-weight:600;' : ''}" onclick="openTerritoryModal('${item.id}')">
+      <td><b>${item.fullName}</b></td>
+      <td><b>${item.score.toFixed(1)}</b></td>
+      <td>${item.demand}</td>
+      <td>${item.fit}</td>
+      <td>${item.capacity}</td>
+      <td>${item.cleanSize}</td>
+      <td><span class="rank ${item.rankClass}">${item.rankLabel}</span></td>
+    </tr>
+  `).join('');
+}
+
+let currentSortMode = 'score';
+const sortBtn = document.getElementById('sort-btn');
+if (sortBtn) {
+  sortBtn.onclick = () => {
+    if (!hasAnalyzed) {
+      notify('Vui lòng kéo thả tệp và khởi chạy AI Agent trước khi sắp xếp dữ liệu.');
+      return;
+    }
+    let sorted = [...territoryDataset];
+    if (currentSortMode === 'score') {
+      currentSortMode = 'demand';
+      sortBtn.textContent = 'Nhu cầu ⌵';
+      sorted.sort((a, b) => parseInt(b.demand) - parseInt(a.demand));
+    } else if (currentSortMode === 'demand') {
+      currentSortMode = 'fit';
+      sortBtn.textContent = 'Độ phù hợp ⌵';
+      sorted.sort((a, b) => parseInt(b.fit) - parseInt(a.fit));
+    } else if (currentSortMode === 'fit') {
+      currentSortMode = 'capacity';
+      sortBtn.textContent = 'Năng lực ⌵';
+      sorted.sort((a, b) => parseInt(b.capacity) - parseInt(a.capacity));
+    } else {
+      currentSortMode = 'score';
+      sortBtn.textContent = 'Điểm tổng hợp ⌵';
+      sorted.sort((a, b) => b.score - a.score);
+    }
+    renderCompareTable(sorted);
+    notify(`Đã sắp xếp theo: ${sortBtn.textContent}`);
+  };
+}
+
+const modal = document.getElementById('app-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalBody = document.getElementById('modal-body');
+const modalActionBtn = document.getElementById('modal-action-btn');
+
+function openModal(title, htmlContent, actionText, actionCallback) {
+  if (!modal) return;
+  modalTitle.textContent = title;
+  modalBody.innerHTML = htmlContent;
+
+  if (actionText && actionCallback) {
+    modalActionBtn.style.display = 'inline-block';
+    modalActionBtn.textContent = actionText;
+    modalActionBtn.onclick = () => {
+      closeModal();
+      actionCallback();
+    };
+  } else {
+    modalActionBtn.style.display = 'none';
+  }
+
+  modal.classList.add('open');
+}
+
+function closeModal() {
+  if (modal) modal.classList.remove('open');
+}
+
+if (modal) {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+function openTerritoryModal(tId) {
+  const item = territoryDataset.find(t => t.id === tId);
+  if (!item) return;
+
+  const html = `
+    <div style="margin-bottom:12px;">
+      <h4 style="margin:0 0 4px;font-size:14px;color:var(--text-main);">${item.fullName}</h4>
+      <span style="font-size:11px;color:var(--text-muted);">Quy mô chuẩn hóa: <b>${item.cleanSize}</b></span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin:14px 0;background:rgba(0,0,0,0.03);padding:12px;border-radius:10px;">
+      <div><small style="color:var(--text-muted);font-size:10px;display:block;">Nhu cầu thị trường</small><b style="font-size:15px;color:var(--theme-primary);">${item.demand}</b></div>
+      <div><small style="color:var(--text-muted);font-size:10px;display:block;">Độ phù hợp WMS</small><b style="font-size:15px;color:var(--theme-primary);">${item.fit}</b></div>
+      <div><small style="color:var(--text-muted);font-size:10px;display:block;">Năng lực SLA (5 người)</small><b style="font-size:15px;color:var(--theme-primary);">${item.capacity}</b></div>
+    </div>
+
+    <div style="background:rgba(40,121,238,0.1);padding:12px;border-radius:9px;border:1px solid rgba(40,121,238,0.25);margin-bottom:12px;">
+      <strong style="color:var(--theme-primary);display:block;margin-bottom:4px;">Đánh giá & Căn cứ kiểm định của AI Agent:</strong>
+      <p style="margin:0;line-height:1.6;color:var(--text-main);">${item.details}</p>
+    </div>
+
+    <div style="font-size:11px;color:var(--text-muted);">
+      Xếp hạng: <strong style="color:#18b777;">${item.rankLabel}</strong> · Điểm tổng hợp: <strong>${item.score}/100</strong>
+    </div>
+  `;
+
+  openModal(`Hồ Sơ Đánh Giá: ${item.name}`, html, 'Xem Bảng So Sánh Đầy Đủ', () => {
+    switchView('compare');
+  });
+}
+
+const winnerA = document.getElementById('winner-a');
+const winnerB = document.getElementById('winner-b');
+if (winnerA) winnerA.onclick = () => openTerritoryModal('T1');
+if (winnerB) winnerB.onclick = () => openTerritoryModal('T2');
+
+[1, 2, 3, 4].forEach(i => {
+  const step = document.getElementById(`step-${i}`);
+  if (step) {
+    step.onclick = () => {
+      toggleTaskAccordion(i);
+      const acc = document.getElementById(`accordion-task-${i}`);
+      if (acc) acc.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+  }
+});
+
+function appendLog(level, msg) {
+  const logBox = document.getElementById('logs-list');
+  if (!logBox) return;
+  const row = document.createElement('div');
+  row.innerHTML = `<time>${new Date().toLocaleTimeString('vi-VN')}</time><b>${level}</b><span>${msg}</span>`;
+  logBox.prepend(row);
+}
+
+// ================= 10. EXECUTIVE ANALYTICS DASHBOARD (CHART.JS) =================
+
+let barChartInstance = null;
+let radarChartInstance = null;
+
+function renderAnalyticsCharts() {
+  if (typeof Chart === 'undefined') return;
+
+  const barCanvas = document.getElementById('barAnalyticsChart');
+  const radarCanvas = document.getElementById('radarAnalyticsChart');
+  if (!barCanvas || !radarCanvas) return;
+
+  const barCtx = barCanvas.getContext('2d');
+  const radarCtx = radarCanvas.getContext('2d');
+  if (!barCtx || !radarCtx) return;
+
+  const isDark = document.body.classList.contains('dark-mode');
+  const textColor = isDark ? '#cbd5e1' : '#475569';
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+
+  // 1. Biểu đồ Cột (Bar Chart): So Sánh 4 Địa Bàn
+  if (barChartInstance) barChartInstance.destroy();
+
+  barChartInstance = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Bình Dương (Top 1)', 'Đà Nẵng (Top 2)', 'Cần Thơ (Loại)', 'Hải Phòng (Loại)'],
+      datasets: [
+        {
+          label: 'Điểm tổng hợp (/100)',
+          data: [92.5, 85.2, 72.1, 61.7],
+          backgroundColor: 'rgba(40, 121, 238, 0.85)',
+          borderColor: '#2879ee',
+          borderWidth: 1.5,
+          borderRadius: 6
+        },
+        {
+          label: 'Nhu cầu thị trường (%)',
+          data: [95, 88, 76, 65],
+          backgroundColor: 'rgba(16, 185, 129, 0.8)',
+          borderColor: '#10b981',
+          borderWidth: 1.5,
+          borderRadius: 6
+        },
+        {
+          label: 'Độ phù hợp WMS (%)',
+          data: [93, 85, 70, 60],
+          backgroundColor: 'rgba(139, 92, 246, 0.8)',
+          borderColor: '#8b5cf6',
+          borderWidth: 1.5,
+          borderRadius: 6
+        },
+        {
+          label: 'Khả thi On-site Team 5 (%)',
+          data: [85, 82, 68, 58],
+          backgroundColor: 'rgba(245, 158, 11, 0.8)',
+          borderColor: '#f59e0b',
+          borderWidth: 1.5,
+          borderRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            color: textColor,
+            font: { family: "'Be Vietnam Pro', sans-serif", size: 10, weight: '600' },
+            boxWidth: 12,
+            padding: 10
+          }
+        },
+        tooltip: {
+          padding: 10,
+          boxPadding: 4,
+          callbacks: {
+            label: function (context) {
+              return ` ${context.dataset.label}: ${context.raw}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: {
+            color: textColor,
+            font: { family: "'Be Vietnam Pro', sans-serif", size: 10, weight: '600' }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          grid: { color: gridColor },
+          ticks: {
+            color: textColor,
+            font: { family: "'Be Vietnam Pro', sans-serif", size: 10 }
+          }
+        }
+      }
+    }
+  });
+
+  // 2. Biểu đồ Radar (Radar Chart): Ma Trận 5 Chiều Top 1 vs Top 2
+  if (radarChartInstance) radarChartInstance.destroy();
+
+  radarChartInstance = new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+      labels: [
+        'Quy mô bán lẻ',
+        'Tốc độ tăng trưởng',
+        'Khớp tính năng WMS',
+        'Khả thi SLA (5 người)',
+        'Lợi thế cạnh tranh'
+      ],
+      datasets: [
+        {
+          label: 'Bình Dương (Top 1)',
+          data: [95, 88, 93, 90, 92],
+          backgroundColor: 'rgba(40, 121, 238, 0.25)',
+          borderColor: '#2879ee',
+          pointBackgroundColor: '#2879ee',
+          pointBorderColor: '#fff',
+          borderWidth: 2
+        },
+        {
+          label: 'Đà Nẵng (Top 2)',
+          data: [85, 96, 85, 82, 88],
+          backgroundColor: 'rgba(16, 185, 129, 0.25)',
+          borderColor: '#10b981',
+          pointBackgroundColor: '#10b981',
+          pointBorderColor: '#fff',
+          borderWidth: 2
+        },
+        {
+          label: 'Cần Thơ (Tham chiếu loại)',
+          data: [65, 70, 50, 45, 60],
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          borderColor: 'rgba(239, 68, 68, 0.6)',
+          borderDash: [4, 4],
+          pointBackgroundColor: '#ef4444',
+          borderWidth: 1.5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            color: textColor,
+            font: { family: "'Be Vietnam Pro', sans-serif", size: 10, weight: '600' },
+            boxWidth: 12,
+            padding: 8
+          }
+        }
+      },
+      scales: {
+        r: {
+          angleLines: { color: gridColor },
+          grid: { color: gridColor },
+          pointLabels: {
+            color: textColor,
+            font: { family: "'Be Vietnam Pro', sans-serif", size: 9, weight: '600' }
+          },
+          suggestedMin: 30,
+          suggestedMax: 100,
+          ticks: {
+            display: false
+          }
+        }
+      }
+    }
+  });
+}
+
+// ================= 11. QUY CHUẨN ĐẦU RA: EXCEL, WORD, POWERPOINT =================
+
+function exportExcelDeliverable() {
+  if (!hasAnalyzed) {
+    notify('Vui lòng hoàn tất xử lý tệp trước khi xuất file Excel!');
+    return;
+  }
+
+  let csvContent = '\uFEFF';
+  csvContent += 'BẢNG MA TRẬN CHẤM ĐIỂM 4 ĐỊA BÀN MỞ RỘNG - CÔNG TY HƯNG PHÁT WMS\r\n';
+  csvContent += 'Mã hồ sơ: HP-EXP-2026-Q1-AUDIT | Ngày xuất: ' + new Date().toLocaleDateString('vi-VN') + '\r\n\r\n';
+  csvContent += 'Xếp hạng,Địa bàn,Điểm tổng hợp (/100),Nhu cầu thị trường,Độ phù hợp WMS,Khả năng On-site SLA (5 người),Quy mô chuẩn hóa,Đề xuất\r\n';
+
+  territoryDataset.forEach(t => {
+    csvContent += `"${t.rank}","${t.fullName}",${t.score},"${t.demand}","${t.fit}","${t.capacity}","${t.cleanSize}","${t.rankLabel}"\r\n`;
+  });
+
+  csvContent += '\r\n\r\nDANH SÁCH KHÁCH HÀNG TIỀM NĂNG (LEADS) ĐÃ SÀNG LỌC\r\n';
+  csvContent += 'Mã Lead,Tên chuỗi khách hàng,Địa bàn,Số điểm bán,Nhu cầu tính năng kho,Yêu cầu On-site,Trạng thái thẩm định\r\n';
+  csvContent += '"L01","Chuỗi Siêu thị Mini Gia Đình","Bình Dương","35","Barcode quét nhanh, Quản lý HSD","On-site 3 ngày nghiệm thu","QUALIFIED (Rất khả thi)"\r\n';
+  csvContent += '"L02","Hệ thống Nhà thuốc Tân An","Bình Dương","50","Quản lý Lô FEFO, Kiểm kê không dừng bán","On-site 1 lần/tuần tháng đầu","QUALIFIED (Rất khả thi)"\r\n';
+  csvContent += '"L05","Chuỗi Đặc sản Hương Việt","Đà Nẵng","18","Cross-docking, POS Sync","Đào tạo 4 ngày tại Đà Nẵng","QUALIFIED (Rất khả thi)"\r\n';
+  csvContent += '"L06","Chuỗi Thời trang DanangStyle","Đà Nẵng","24","Barcode 2D, Điều chuyển nội bộ","On-site 3 ngày go-live","QUALIFIED (Rất khả thi)"\r\n';
+  csvContent += '"L09","Chuỗi Nông sản Sạch Mekong","Cần Thơ","22","Kho lạnh -25C, Cảm biến IoT","Trực 24/7 tại 3 kho","DISQUALIFIED (Vượt quá năng lực on-site & lệch SP)"\r\n';
+  csvContent += '"L13","Kho Ngoại quan Tân Cảng","Hải Phòng","1","Quản lý container, EDI hải quan","Trực thường trực tại bãi","DISQUALIFIED (Lệch WMS bán lẻ)"\r\n';
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `HungPhat_MaTran_DiaBan_Leads_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  notify('Đã tải xuống file Excel (.xlsx) báo cáo địa bàn & danh sách Leads!');
+}
+
+function exportWordDeliverable() {
+  if (!hasAnalyzed) {
+    notify('Vui lòng hoàn tất xử lý tệp trước khi xuất file Word!');
+    return;
+  }
+
+  const wordContent = `
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset="utf-8">
+  <title>Tờ Trình Đề Xuất Lựa Chọn 02 Địa Bàn Khảo Sát Mở Rộng</title>
+  <style>
+    body { font-family: "Times New Roman", Times, serif; font-size: 13pt; line-height: 1.5; color: #000; margin: 40px; }
+    h2, h3 { text-align: center; }
+    .header-table { width: 100%; border: none; margin-bottom: 25px; }
+    .header-table td { border: none; font-size: 11pt; vertical-align: top; }
+    .data-table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+    .data-table th, .data-table td { border: 1px solid #000; padding: 7px 10px; font-size: 11pt; }
+    .data-table th { background-color: #f2f2f2; text-align: center; }
+    .signature-table { width: 100%; border: none; margin-top: 40px; }
+    .signature-table td { border: none; text-align: center; vertical-align: top; font-size: 12pt; }
+  </style>
+</head>
+<body>
+  <table class="header-table">
+    <tr>
+      <td style="width: 50%;">
+        <strong>CÔNG TY CỔ PHẦN GIẢI PHÁP QUẢN LÝ KHO HƯNG PHÁT</strong><br>
+        <strong>PHÒNG PHÁT TRIỂN KINH DOANH</strong><br>
+        Số: 16/TTr-PTKD-2026
+      </td>
+      <td style="width: 50%; text-align: center;">
+        <strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br>
+        <strong>Độc lập - Tự do - Hạnh phúc</strong><br>
+        <em>TP. Hồ Chí Minh, ngày 16 tháng 11 năm 2026</em>
+      </td>
+    </tr>
+  </table>
+
+  <h2>TỜ TRÌNH</h2>
+  <h3>V/v Đề xuất lựa chọn 02 địa bàn khảo sát khách hàng mở rộng thị trường</h3>
+  <p style="text-align: center;"><strong>Kính gửi: BAN GIÁM ĐỐC CÔNG TY HƯNG PHÁT</strong></p>
+
+  <p>Căn cứ định hướng mở rộng kinh doanh năm 2026 và hiện trạng năng lực triển khai của công ty (hiện có duy nhất 01 đội ngũ gồm 05 nhân sự, đủ phục vụ 01 đợt mở rộng duy nhất);</p>
+  <p>Sau khi tiếp nhận và chuẩn hóa dữ liệu từ các tệp Excel, Word, PowerPoint qua 10 bước quy trình AI Agent có đối soát kiểm định, Phòng Phát triển Kinh doanh kính trình Ban Giám Đốc kết quả như sau:</p>
+
+  <h4>I. BẢNG XẾP HẠNG ĐÁNH GIÁ 4 ĐỊA BÀN</h4>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Hạng</th>
+        <th>Địa bàn</th>
+        <th>Điểm tổng hợp</th>
+        <th>Nhu cầu</th>
+        <th>Độ phù hợp WMS</th>
+        <th>Khả thi On-site (Team 5)</th>
+        <th>Đề xuất</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="font-weight: bold; background: #e6f7ee;">
+        <td style="text-align: center;">01</td>
+        <td>Địa bàn A (Bình Dương & Đông Nam Bộ)</td>
+        <td style="text-align: center;">92.5</td>
+        <td style="text-align: center;">95%</td>
+        <td style="text-align: center;">93%</td>
+        <td>85% (Cách 45km, hỗ trợ trong ngày)</td>
+        <td style="text-align: center;">ƯU TIÊN SỐ 1</td>
+      </tr>
+      <tr style="font-weight: bold; background: #e6f7ee;">
+        <td style="text-align: center;">02</td>
+        <td>Địa bàn B (Đà Nẵng & Miền Trung)</td>
+        <td style="text-align: center;">85.2</td>
+        <td style="text-align: center;">88%</td>
+        <td style="text-align: center;">85%</td>
+        <td>82% (Bay 1.5h, on-site 3 ngày go-live)</td>
+        <td style="text-align: center;">ƯU TIÊN SỐ 2</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">03</td>
+        <td>Địa bàn C (Cần Thơ & ĐBSCL)</td>
+        <td style="text-align: center;">72.1</td>
+        <td style="text-align: center;">76%</td>
+        <td style="text-align: center;">70%</td>
+        <td>68% (Đòi trực on-site 24/7 gây quá tải)</td>
+        <td style="text-align: center;">TẠM LOẠI TRỪ</td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">04</td>
+        <td>Địa bàn D (Hải Phòng & Duyên Hải)</td>
+        <td style="text-align: center;">61.7</td>
+        <td style="text-align: center;">65%</td>
+        <td style="text-align: center;">60%</td>
+        <td>58% (Cách 1.750km, cảng biển & phá giá 40%)</td>
+        <td style="text-align: center;">TẠM LOẠI TRỪ</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>II. ĐỀ XUẤT CHÍNH THỨC</h4>
+  <p>Kính đề nghị Ban Giám Đốc phê duyệt tiến hành khảo sát thực địa tại <strong>Địa bàn A (Bình Dương)</strong> và <strong>Địa bàn B (Đà Nẵng)</strong> từ ngày 01/12/2026.</p>
+
+  <table class="signature-table">
+    <tr>
+      <td style="width: 50%;">
+        <strong>Ý KIẾN PHÊ DUYỆT CỦA BAN GIÁM ĐỐC</strong><br><br><br><br><br>
+        <em>(Ký và ghi rõ họ tên)</em>
+      </td>
+      <td style="width: 50%;">
+        <strong>TRƯỞNG PHÒNG PHÁT TRIỂN KINH DOANH</strong><br><br><br><br><br>
+        <strong>Lê Văn Hưng</strong>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  const blob = new Blob(['\ufeff' + wordContent], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `HungPhat_ToTrinh_DeXuat_DiaBan_${new Date().toISOString().slice(0, 10)}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  notify('Đã tải xuống file Word (.docx) Tờ trình đề xuất khảo sát!');
+}
+
+function exportPptDeliverable() {
+  if (!hasAnalyzed) {
+    notify('Vui lòng hoàn tất xử lý tệp trước khi xuất file PowerPoint!');
+    return;
+  }
+
+  const pptHtml = `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Slide Trình Chiếu Ban Giám Đốc - Hưng Phát WMS</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #fff; margin: 0; padding: 20px; }
+    .slide { background: linear-gradient(135deg, #0b1730 0%, #15325c 100%); border-radius: 14px; padding: 40px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid #1e3a66; min-height: 400px; position: relative; }
+    .slide-no { position: absolute; right: 25px; top: 25px; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 11px; }
+    h1 { font-size: 28px; color: #38bdf8; margin: 0 0 10px; }
+    h2 { font-size: 22px; color: #60a5fa; margin: 0 0 20px; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
+    p, li { font-size: 15px; line-height: 1.7; color: #cbd5e1; }
+    .highlight-card { background: rgba(255,255,255,0.06); padding: 15px; border-radius: 10px; border-left: 4px solid #38bdf8; margin: 15px 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .badge { display: inline-block; background: #10b981; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+    @media print { .slide { page-break-after: always; height: 100vh; margin: 0; border: none; } }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <span class="slide-no">Slide 1 / 5</span>
+    <h1>CÔNG TY CỔ PHẦN GIẢI PHÁP QUẢN LÝ KHO HƯNG PHÁT</h1>
+    <h2 style="border:none; color:#94a3b8; font-size:16px;">Báo Cáo Nghiên Cứu & Đề Xuất Chiến Lược</h2>
+    <div style="margin-top:60px;">
+      <h2 style="font-size:32px; color:#fff;">LỰA CHỌN 02 ĐỊA BÀN KHẢO SÁT MỞ RỘNG THỊ TRƯỜNG</h2>
+      <p style="font-size:18px; color:#38bdf8;">Báo cáo Trình Ban Giám Đốc Phê Duyệt</p>
+      <p style="color:#94a3b8; margin-top:40px;">Người trình bày: Trưởng phòng Phát triển Kinh doanh - Lê Văn Hưng<br>Thời gian: Tháng 11/2026</p>
+    </div>
+  </div>
+
+  <div class="slide">
+    <span class="slide-no">Slide 2 / 5</span>
+    <h2>1. BỐI CẢNH & GIỚI HẠN NGUỒN LỰC</h2>
+    <div class="grid">
+      <div class="highlight-card">
+        <h3 style="color:#38bdf8; margin:0 0 8px;">Mục Tiêu Mở Rộng</h3>
+        <p>• Nghiên cứu 04 địa bàn tiềm năng.<br>• Mục tiêu: Chọn ra <strong>02 địa bàn tối ưu nhất</strong> để khảo sát thực địa khách hàng.</p>
+      </div>
+      <div class="highlight-card" style="border-left-color:#f59e0b;">
+        <h3 style="color:#f59e0b; margin:0 0 8px;">Ràng Buộc Năng Lực Vận Hành</h3>
+        <p>• Hiện chỉ có <strong>01 đội triển khai duy nhất (05 kỹ sư)</strong>.<br>• Chỉ đủ phục vụ 01 đợt mở rộng duy nhất, không được phép gây quá tải làm vỡ SLA khách hàng hiện hữu.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <span class="slide-no">Slide 3 / 5</span>
+    <h2>2. KẾT QUẢ ĐỐI SOÁT & LÀM SẠCH DỮ LIỆU</h2>
+    <ul>
+      <li><strong>Khử trùng lặp tại Đà Nẵng:</strong> Loại bỏ 160 bản ghi lặp do Tạp chí Logistics copy từ VCCI, chuẩn hóa về <strong>160 chuỗi thực tế</strong>.</li>
+      <li><strong>Bóc tách hộ cá thể tại Cần Thơ:</strong> Báo cáo cũ 2023 gộp 180 hộ cá thể, chuỗi bán lẻ thực tế chỉ còn <strong>75 doanh nghiệp</strong>.</li>
+      <li><strong>Đồng bộ kỳ thống kê:</strong> Chuẩn hóa dữ liệu Bình Dương (227 chuỗi) và Hải Phòng về mốc năm 2025.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <span class="slide-no">Slide 4 / 5</span>
+    <h2>3. MA TRẬN ĐÁNH GIÁ & ĐỀ XUẤT TOP 2 ĐỊA BÀN</h2>
+    <div class="grid">
+      <div class="highlight-card" style="border-left-color:#10b981; background:rgba(16,185,129,0.1);">
+        <span class="badge">TOP 1 ƯU TIÊN</span>
+        <h3 style="color:#34d399; margin:8px 0 4px;">Địa bàn A: Bình Dương (92.5/100)</h3>
+        <p>• Độ khớp WMS: <strong>93%</strong> (chuỗi siêu thị, nhà thuốc).<br>• Khả thi On-site: <strong>85%</strong> (cách 45km, hỗ trợ trong ngày).<br>• Chi phí mở rộng thấp, biên lợi nhuận cao.</p>
+      </div>
+      <div class="highlight-card" style="border-left-color:#38bdf8; background:rgba(56,189,248,0.1);">
+        <span class="badge" style="background:#0284c7;">TOP 2 ƯU TIÊN</span>
+        <h3 style="color:#7dd3fc; margin:8px 0 4px;">Địa bàn B: Đà Nẵng (85.2/100)</h3>
+        <p>• Tăng trưởng bán lẻ du lịch: <strong>22%/năm</strong>.<br>• Độ khớp WMS: <strong>85%</strong> (đối thủ công nghệ desktop cũ).<br>• Bay 1.5h, mô hình đào tạo từ xa + 3 ngày on-site khi go-live.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <span class="slide-no">Slide 5 / 5</span>
+    <h2>4. KẾ HOẠCH TRIỂN KHAI TIẾP THEO</h2>
+    <ul>
+      <li><strong>Tháng 12/2026:</strong> Tiếp cận khảo sát thực địa 7 Qualified Leads đã được lọc tại Bình Dương và Đà Nẵng.</li>
+      <li><strong>Tháng 01/2027:</strong> Thử nghiệm Pilot giải pháp Hưng Phát Retail Edition tại 2 chuỗi siêu thị tiên phong.</li>
+      <li><strong>Khuyến nghị Ban Giám Đốc:</strong> Phê duyệt kế hoạch công tác và ngân sách khảo sát thực địa cho 2 địa bàn trên.</li>
+    </ul>
+    <div style="margin-top:40px; text-align:center;">
+      <p style="font-size:20px; color:#38bdf8; font-weight:bold;">XIN TRÂN TRỌNG CẢM ƠN BAN GIÁM ĐỐC!</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const blob = new Blob([pptHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `HungPhat_Slide_TrinhChieu_BGD_${new Date().toISOString().slice(0, 10)}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  notify('Đã tải xuống bộ Slide PowerPoint (.pptx / HTML Deck) sẵn sàng trình chiếu!');
+}
+
+const notifBtn = document.getElementById('notif-btn');
+if (notifBtn) {
+  notifBtn.onclick = () => {
+    switchView('logs');
+    notify('Đã chuyển sang màn hình Nhật ký & Thông báo hệ thống.');
+  };
+}
+
+// ================= 15. BONG BÓNG CHAT AI NỔI & COPILOT CHAT WIDGET =================
+
+function toggleAiChat(forceState) {
+  const win = document.getElementById('ai-chat-window');
+  if (!win) return;
+  const isCurrentlyOpen = win.classList.contains('open');
+  const shouldOpen = forceState !== undefined ? forceState : !isCurrentlyOpen;
+
+  if (shouldOpen) {
+    win.classList.add('open');
+    const input = document.getElementById('ai-chat-input');
+    if (input) setTimeout(() => input.focus(), 150);
+    scrollAiChatToBottom();
+  } else {
+    win.classList.remove('open');
+  }
+}
+
+function clearAiChat() {
+  const box = document.getElementById('ai-chat-messages');
+  if (!box) return;
+  box.innerHTML = `
+    <div class="ai-msg bot">
+      <div class="ai-msg-avatar">🤖</div>
+      <div class="ai-msg-bubble">
+        <strong>Trợ lý DCT AI:</strong> Cuộc trò chuyện đã được làm mới! Tôi sẵn sàng hỗ trợ bạn phân tích thị trường, đối soát số liệu hoặc chuẩn bị luận cứ bảo vệ trước Ban Giám Đốc.
+      </div>
+    </div>
+  `;
+}
+
+function scrollAiChatToBottom() {
+  const box = document.getElementById('ai-chat-messages');
+  if (box) {
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
+function sendAiChatQuickPrompt(promptText) {
+  toggleAiChat(true);
+  const input = document.getElementById('ai-chat-input');
+  if (input) input.value = promptText;
+  handleAiChatSubmit(new Event('submit'));
+}
+
+async function handleAiChatSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const input = document.getElementById('ai-chat-input');
+  const box = document.getElementById('ai-chat-messages');
+  if (!input || !box) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Append user message
+  const userMsgEl = document.createElement('div');
+  userMsgEl.className = 'ai-msg user';
+  userMsgEl.innerHTML = `
+    <div class="ai-msg-avatar">👤</div>
+    <div class="ai-msg-bubble">${escapeHtml(text)}</div>
+  `;
+  box.appendChild(userMsgEl);
+  input.value = '';
+  scrollAiChatToBottom();
+
+  // Append typing indicator
+  const typingEl = document.createElement('div');
+  typingEl.className = 'ai-msg bot';
+  typingEl.id = 'ai-typing-temp';
+  typingEl.innerHTML = `
+    <div class="ai-msg-avatar">🤖</div>
+    <div class="ai-msg-bubble">
+      <span class="typing-dots"><span></span><span></span><span></span></span>
+      <span style="font-size:11px; color:var(--text-muted); margin-left:6px;">AI đang tra cứu dữ liệu & thẩm định...</span>
+    </div>
+  `;
+  box.appendChild(typingEl);
+  scrollAiChatToBottom();
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    });
+
+    let botReply = '';
+    if (response.ok) {
+      const data = await response.json();
+      botReply = data.reply || '';
+    }
+
+    if (!botReply) botReply = getSmartFallbackReply(text);
+
+    const currentTyping = document.getElementById('ai-typing-temp');
+    if (currentTyping) currentTyping.remove();
+
+    const formattedHtml = formatBotReply(botReply);
+
+    const botMsgEl = document.createElement('div');
+    botMsgEl.className = 'ai-msg bot';
+    botMsgEl.innerHTML = `
+      <div class="ai-msg-avatar">🤖</div>
+      <div class="ai-msg-bubble">${formattedHtml}</div>
+    `;
+    box.appendChild(botMsgEl);
+    scrollAiChatToBottom();
+
+    triggerContextualHighlights(text);
+
+  } catch (err) {
+    const currentTyping = document.getElementById('ai-typing-temp');
+    if (currentTyping) currentTyping.remove();
+
+    const fallback = getSmartFallbackReply(text);
+    const botMsgEl = document.createElement('div');
+    botMsgEl.className = 'ai-msg bot';
+    botMsgEl.innerHTML = `
+      <div class="ai-msg-avatar">🤖</div>
+      <div class="ai-msg-bubble">${formatBotReply(fallback)}</div>
+    `;
+    box.appendChild(botMsgEl);
+    scrollAiChatToBottom();
+    triggerContextualHighlights(text);
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatBotReply(raw) {
+  let html = raw
+    .replace(/^### (.*$)/gim, '<h4 style="margin:4px 0 6px; font-size:13px; color:var(--theme-primary);">$1</h4>')
+    .replace(/^## (.*$)/gim, '<h3 style="margin:6px 0; font-size:14px; color:var(--text-main);">$1</h3>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+    .replace(/\n/gim, '<br>');
+  return html;
+}
+
+function triggerContextualHighlights(query) {
+  const q = query.toLowerCase();
+  if (q.includes('cần thơ') || q.includes('can tho')) {
+    if (typeof highlightTask === 'function') highlightTask(3);
+  } else if (q.includes('đà nẵng') || q.includes('da nang')) {
+    if (typeof highlightTask === 'function') highlightTask(2);
+  } else if (q.includes('làm sạch') || q.includes('dữ liệu') || q.includes('trùng lặp')) {
+    if (typeof highlightTask === 'function') highlightTask(1);
+  } else if (q.includes('ban giám đốc') || q.includes('hải phòng') || q.includes('đề xuất')) {
+    if (typeof highlightTask === 'function') highlightTask(4);
+  }
+}
+
+function getSmartFallbackReply(query) {
+  const msg = query.toLowerCase();
+  if (msg.includes('cần thơ') || msg.includes('can tho') || msg.includes('tại sao loại')) {
+    return `### Phân tích AI Agent: Lý do loại trừ Địa bàn C (Cần Thơ & ĐBSCL)\n\n1. **Độ lệch tính năng**: 80% nhu cầu kho lạnh bảo quản nông thủy sản âm sâu (-25°C), trong khi WMS Hưng Phát chuyên về chuỗi bán lẻ tổng hợp và siêu thị.\n2. **Rủi ro vận hành quá tải**: Khách hàng đòi hỏi kỹ sư trực on-site 24/7 trong 3 tuần đầu. Với 01 team 5 người duy nhất, nếu nhận sẽ gây kiệt sức và vỡ SLA.\n3. **Số liệu ảo**: Đã bóc tách 180 hộ kinh doanh cá thể; thị trường chuỗi thực tế chỉ còn ~75 đơn vị.`;
+  } else if (msg.includes('đà nẵng') || msg.includes('da nang') || msg.includes('ưu thế')) {
+    return `### Ưu thế chiến lược của Địa bàn B (Đà Nẵng & Duyên Hải Miền Trung)\n\n1. **Độ khớp WMS đạt 85%**: Các chuỗi bán lẻ du lịch và đặc sản rất cần tính năng barcode di động, kiểm kê nhanh theo ca.\n2. **Đối thủ công nghệ cũ**: Thị trường chỉ có các phần mềm offline nội địa, khao khát nền tảng Cloud hiện đại.\n3. **Khả thi triển khai**: Có đường bay thẳng 1.5h từ TP.HCM. Áp dụng mô hình Hybrid On-site 3 ngày go-live hoàn toàn khả thi với đội ngũ 5 người.`;
+  } else if (msg.includes('hải phòng') || msg.includes('hai phong') || msg.includes('phản biện')) {
+    return `### Kịch bản phản biện Ban Giám Đốc nếu bị yêu cầu chọn Hải Phòng:\n\n1. **Lệch phân khúc**: 70% doanh nghiệp là kho ngoại quan và container cảng biển; chuỗi bán lẻ thực tế chỉ có 55 đơn vị.\n2. **Cạnh tranh giá khốc liệt**: Đối thủ Phương Bắc phá giá 40% kết hợp thế lực cảng biển độc quyền.\n3. **Cự ly 1.750km**: Chi phí đi lại và hỗ trợ on-site sẽ ăn mòn toàn bộ lợi nhuận hợp đồng.`;
+  } else if (msg.includes('tuyển thêm') || msg.includes('nhân sự') || msg.includes('kỹ sư')) {
+    return `### Phân tích What-If: Tuyển thêm 3 kỹ sư (nâng đội ngũ lên 8 người)\n\n- Có thể mở rộng đồng thời 3 địa bàn.\n- Tuy nhiên, Cần Thơ vẫn KHÔNG NÊN chọn vì rào cản tính năng kho lạnh âm sâu là rào cản công nghệ chứ không chỉ là nhân sự.\n- Top 2 tối ưu nhất vẫn là Bình Dương & Đà Nẵng để đảm bảo tỷ lệ thành công 100%.`;
+  } else if (msg.includes('làm sạch') || msg.includes('dữ liệu')) {
+    return `### Kết quả kiểm định & làm sạch dữ liệu đầu vào:\n\n- Loại bỏ 160 số liệu sao chép trùng lặp tại Đà Nẵng.\n- Loại bỏ 18 bản ghi trùng tại Bình Dương và bóc tách 180 hộ cá thể tại Cần Thơ.\n- Đồng bộ toàn bộ các kỳ báo cáo lệch pha về mốc chuẩn hóa năm 2025.`;
+  } else {
+    return `Xin chào Trưởng phòng! Tôi là AI Agent Hưng Phát. Tôi đã sẵn sàng hỗ trợ phản biện quyết định mở rộng thị trường, thẩm định ma trận năng lực và chuẩn bị tờ trình Ban Giám Đốc. Bạn có thể chọn các câu hỏi gợi ý hoặc đặt câu hỏi bất kỳ!`;
+  }
+}
+
+// Khởi tạo trạng thái ban đầu của màn hình Báo cáo kết quả
+updateReportsViewState();
+
+// ================= 16. QUẢN LÝ TÀI KHOẢN & ĐĂNG NHẬP / ĐĂNG XUẤT (AUTHENTICATION SYSTEM) =================
+
+const AUTH_PROFILES = {
+  admin: {
+    id: 'admin',
+    name: 'Lê Văn Hưng',
+    roleTitle: 'Quản trị viên & Trưởng phòng PTKD',
+    roleBadge: 'Administrator',
+    avatar: 'AD',
+    email: 'hung.le@hungphat.vn',
+    dept: 'Phát triển Kinh doanh & Mở rộng',
+    permission: 'Toàn quyền Thẩm định & Phê duyệt',
+    statusText: '● Trực tuyến (Online)',
+    isLoggedIn: true
+  },
+  analyst: {
+    id: 'analyst',
+    name: 'Nguyễn Minh Khoa',
+    roleTitle: 'Chuyên viên Khảo sát & PTKD',
+    roleBadge: 'Chuyên viên',
+    avatar: 'MK',
+    email: 'khoa.nguyen@hungphat.vn',
+    dept: 'Phát triển Kinh doanh',
+    permission: 'Khảo sát địa bàn, Nạp dữ liệu & Đề xuất',
+    statusText: '● Trực tuyến (Online)',
+    isLoggedIn: true
+  },
+  guest: {
+    id: 'guest',
+    name: 'Khách vãng lai',
+    roleTitle: 'Chưa đăng nhập (Nhấn để đăng nhập)',
+    roleBadge: 'Khách',
+    avatar: 'KH',
+    email: 'Chưa xác thực',
+    dept: 'Khách xem báo cáo',
+    permission: 'Chỉ xem báo cáo mẫu',
+    statusText: '○ Chưa đăng nhập',
+    isLoggedIn: false
+  }
+};
+
+let currentAuthUser = AUTH_PROFILES.admin;
+
+function initAuthSystem() {
+  try {
+    const saved = localStorage.getItem('hungphat_current_user');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.id && AUTH_PROFILES[parsed.id]) {
+        currentAuthUser = AUTH_PROFILES[parsed.id];
+      }
+    }
+  } catch (e) {
+    console.warn('Cannot load user from localStorage:', e);
+  }
+
+  updateAuthUI();
+
+  const topbarBtn = document.getElementById('topbar-user-btn');
+  if (topbarBtn) {
+    topbarBtn.onclick = openAuthModal;
+  }
+
+  const sidebarMini = document.getElementById('sidebar-user-mini');
+  if (sidebarMini) {
+    sidebarMini.onclick = openAuthModal;
+  }
+}
+
+function updateAuthUI() {
+  const isLogged = currentAuthUser && currentAuthUser.isLoggedIn;
+
+  // Topbar UI
+  const topbarAvatar = document.getElementById('topbar-avatar');
+  const topbarName = document.getElementById('topbar-user-name');
+  const topbarRole = document.getElementById('topbar-user-role');
+  const topbarDot = document.getElementById('topbar-status-dot');
+
+  if (topbarAvatar) topbarAvatar.textContent = currentAuthUser.avatar;
+  if (topbarName) topbarName.textContent = currentAuthUser.name;
+  if (topbarRole) topbarRole.textContent = isLogged ? currentAuthUser.roleBadge : 'Đăng nhập';
+  if (topbarDot) {
+    if (isLogged) topbarDot.classList.remove('logged-out');
+    else topbarDot.classList.add('logged-out');
+  }
+
+  // Sidebar UI
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  const sidebarName = document.getElementById('sidebar-user-name');
+  const sidebarRole = document.getElementById('sidebar-user-role');
+
+  if (sidebarAvatar) sidebarAvatar.textContent = currentAuthUser.avatar;
+  if (sidebarName) sidebarName.textContent = currentAuthUser.name;
+  if (sidebarRole) sidebarRole.textContent = currentAuthUser.roleTitle;
+
+  // Modal Details
+  const cardAvatar = document.getElementById('auth-card-avatar');
+  const cardName = document.getElementById('auth-card-name');
+  const cardRole = document.getElementById('auth-card-role');
+  const cardEmail = document.getElementById('auth-card-email');
+
+  if (cardAvatar) cardAvatar.textContent = currentAuthUser.avatar;
+  if (cardName) cardName.textContent = currentAuthUser.name;
+  if (cardRole) cardRole.textContent = currentAuthUser.roleTitle;
+  if (cardEmail) cardEmail.textContent = '📧 ' + currentAuthUser.email;
+
+  // Toggle views in modal
+  const loggedInView = document.getElementById('auth-logged-in-view');
+  const loggedOutView = document.getElementById('auth-logged-out-view');
+  const modalBadge = document.getElementById('auth-modal-badge');
+  const modalHeading = document.getElementById('auth-modal-heading');
+
+  if (isLogged) {
+    if (loggedInView) loggedInView.style.display = 'block';
+    if (loggedOutView) loggedOutView.style.display = 'none';
+    if (modalBadge) modalBadge.textContent = '👤 TÀI KHOẢN HỆ THỐNG';
+    if (modalHeading) modalHeading.textContent = 'Thông tin Tài khoản';
+  } else {
+    if (loggedInView) loggedInView.style.display = 'none';
+    if (loggedOutView) loggedOutView.style.display = 'block';
+    if (modalBadge) modalBadge.textContent = '🔐 XÁC THỰC DANH TÍNH';
+    if (modalHeading) modalHeading.textContent = 'Đăng nhập Hệ thống DCT AI';
+  }
+}
+
+function openAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) {
+    modal.style.display = 'grid';
+    updateAuthUI();
+  }
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function showLoginForm() {
+  const loggedInView = document.getElementById('auth-logged-in-view');
+  const loggedOutView = document.getElementById('auth-logged-out-view');
+  const modalBadge = document.getElementById('auth-modal-badge');
+  const modalHeading = document.getElementById('auth-modal-heading');
+
+  if (loggedInView) loggedInView.style.display = 'none';
+  if (loggedOutView) loggedOutView.style.display = 'block';
+  if (modalBadge) modalBadge.textContent = '🔄 CHUYỂN ĐỔI TÀI KHOẢN';
+  if (modalHeading) modalHeading.textContent = 'Đăng nhập tài khoản khác';
+}
+
+function handleLogout() {
+  currentAuthUser = AUTH_PROFILES.guest;
+  try {
+    localStorage.setItem('hungphat_current_user', JSON.stringify(currentAuthUser));
+  } catch (e) {}
+
+  updateAuthUI();
+  closeAuthModal();
+  notify('Đã đăng xuất tài khoản. Hệ thống chuyển sang chế độ Khách xem dữ liệu.');
+}
+
+function handleLoginSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const uInput = document.getElementById('login-username');
+  const val = (uInput ? uInput.value.trim().toLowerCase() : '') || 'admin';
+
+  if (val.includes('analyst') || val.includes('khoa') || val.includes('chuyen vien')) {
+    currentAuthUser = AUTH_PROFILES.analyst;
+  } else {
+    currentAuthUser = AUTH_PROFILES.admin;
+  }
+
+  try {
+    localStorage.setItem('hungphat_current_user', JSON.stringify(currentAuthUser));
+  } catch (e) {}
+
+  updateAuthUI();
+  closeAuthModal();
+  notify(`Đăng nhập thành công! Chào mừng ${currentAuthUser.name} (${currentAuthUser.roleBadge}).`);
+}
+
+function fillQuickAccount(type) {
+  const uInput = document.getElementById('login-username');
+  const pInput = document.getElementById('login-password');
+  if (type === 'analyst') {
+    if (uInput) uInput.value = 'khoa.nguyen@hungphat.vn';
+    if (pInput) pInput.value = 'analyst2026';
+  } else {
+    if (uInput) uInput.value = 'admin';
+    if (pInput) pInput.value = 'hungphat2026';
+  }
+}
+
+// Khởi chạy các tính năng tương tác mới
+initSidebarHoverBehavior();
+initAuthSystem();
